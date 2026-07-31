@@ -1,0 +1,13 @@
+schema_version: "0.2.0"
+record_type: field-contribution-request
+
+request_id: contribution-request:wind.reader-invalid.001
+field_id: field:wind.shared-reasoning.v1
+envelope_id: envelope:wind.reasoning-residue.001
+contributor_binding_id: binding:wind.reader.v1
+requested_disposition: admit
+declared_purpose: Invalid request from a read-only participant.
+requested_access_scopes:
+  - read
+submitted_at: "2026-08-01T07:32:00+09:00"
+status: pending
