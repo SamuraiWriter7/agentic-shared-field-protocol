@@ -1,0 +1,335 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kazene:agentic-shared-field-protocol:shared-field-profile:0.1.0",
+  "title": "Agentic Shared Field Profile",
+  "description": "Defines a selectively permeable shared field for autonomous agents.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_type",
+    "field_id",
+    "name",
+    "field_kind",
+    "origin",
+    "governance",
+    "resource_domains",
+    "access_policy",
+    "permeability_policy",
+    "retention_policy",
+    "status",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "record_type": {
+      "const": "shared-field-profile"
+    },
+    "field_id": {
+      "type": "string",
+      "pattern": "^field:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "field_kind": {
+      "type": "string",
+      "enum": [
+        "knowledge",
+        "memory",
+        "reasoning",
+        "compute",
+        "value",
+        "composite"
+      ]
+    },
+    "origin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin_id",
+        "created_by",
+        "created_at"
+      ],
+      "properties": {
+        "origin_id": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 160
+        },
+        "created_by": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 160
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "governance_mode",
+        "policy_ref",
+        "steward_ids"
+      ],
+      "properties": {
+        "governance_mode": {
+          "type": "string",
+          "enum": [
+            "stewarded",
+            "federated",
+            "rule-bound"
+          ]
+        },
+        "policy_ref": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200
+        },
+        "steward_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 160
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "resource_domains": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "knowledge",
+          "memory",
+          "reasoning",
+          "compute",
+          "value"
+        ]
+      }
+    },
+    "access_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "admission_mode",
+        "allowed_participant_types",
+        "authorization_required",
+        "anonymous_access_allowed",
+        "allowed_access_scopes",
+        "default_access_scopes"
+      ],
+      "properties": {
+        "admission_mode": {
+          "type": "string",
+          "enum": [
+            "invite-only",
+            "allowlist",
+            "policy-evaluated",
+            "open-with-controls"
+          ]
+        },
+        "allowed_participant_types": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "human",
+              "agent",
+              "organization",
+              "service"
+            ]
+          }
+        },
+        "authorization_required": {
+          "type": "boolean"
+        },
+        "anonymous_access_allowed": {
+          "type": "boolean"
+        },
+        "allowed_access_scopes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "discover",
+              "read",
+              "contribute",
+              "derive",
+              "execute",
+              "redistribute",
+              "commercialize",
+              "administer"
+            ]
+          }
+        },
+        "default_access_scopes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "discover",
+              "read",
+              "contribute",
+              "derive",
+              "execute",
+              "redistribute",
+              "commercialize",
+              "administer"
+            ]
+          }
+        }
+      }
+    },
+    "permeability_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inbound",
+        "outbound"
+      ],
+      "properties": {
+        "inbound": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "origin_trace_required",
+            "authorization_receipt_required",
+            "audit_required",
+            "accepted_classifications",
+            "rejected_classifications"
+          ],
+          "properties": {
+            "origin_trace_required": {
+              "type": "boolean"
+            },
+            "authorization_receipt_required": {
+              "type": "boolean"
+            },
+            "audit_required": {
+              "type": "boolean"
+            },
+            "accepted_classifications": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/resourceClassification"
+              }
+            },
+            "rejected_classifications": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/resourceClassification"
+              }
+            }
+          }
+        },
+        "outbound": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "derivative_trace_required",
+            "royalty_settlement_required",
+            "revocation_propagation_required"
+          ],
+          "properties": {
+            "derivative_trace_required": {
+              "type": "boolean"
+            },
+            "royalty_settlement_required": {
+              "type": "boolean"
+            },
+            "revocation_propagation_required": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "retention_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "deletion_on_revocation",
+        "tombstone_required"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "ephemeral",
+            "bounded",
+            "persistent"
+          ]
+        },
+        "max_retention_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "deletion_on_revocation": {
+          "type": "boolean"
+        },
+        "tombstone_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "suspended",
+        "retired"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "resourceClassification": {
+      "type": "string",
+      "enum": [
+        "verified",
+        "provisional",
+        "recoverable",
+        "dormant",
+        "hazardous",
+        "private",
+        "revoked",
+        "exhausted"
+      ]
+    }
+  }
+}
