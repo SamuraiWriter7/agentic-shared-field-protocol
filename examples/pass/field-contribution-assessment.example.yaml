@@ -1,0 +1,25 @@
+schema_version: "0.2.0"
+record_type: field-contribution-assessment
+
+assessment_id: contribution-assessment:wind.reasoning-residue.001
+request_id: contribution-request:wind.reasoning-residue.001
+field_id: field:wind.shared-reasoning.v1
+envelope_id: envelope:wind.reasoning-residue.001
+assessor_id: agent:field-boundary-auditor.v1
+
+checks:
+  origin_trace: pass
+  contributor_authorization: pass
+  domain_compatibility: pass
+  classification_compatibility: pass
+  size_limit: pass
+  content_audit: pass
+  rights_compatibility: pass
+
+decision: accept
+resolved_classification: recoverable
+reason_codes:
+  - ORIGIN_VERIFIED
+  - AUTHORIZATION_VALID
+  - AUDIT_PASSED
+assessed_at: "2026-08-01T07:13:00+09:00"
