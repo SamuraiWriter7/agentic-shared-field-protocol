@@ -1,0 +1,35 @@
+schema_version: "0.2.0"
+record_type: shared-resource-envelope
+
+envelope_id: envelope:wind.oversized.001
+field_id: field:wind.shared-reasoning.v1
+contributor_binding_id: binding:wind.kidney-filter.v1
+resource_id: resource:oversized.001
+resource_domain: reasoning
+resource_kind: reasoning-artifact
+proposed_classification: provisional
+
+origin:
+  origin_id: origin:oversized.001
+  origin_trace_id: trace:oversized.001
+  produced_by: agent:kidney-filter.v1
+  produced_at: "2026-08-01T07:30:00+09:00"
+  derivative_of: []
+
+content:
+  mode: reference
+  media_type: application/octet-stream
+  content_ref: urn:resource-store:oversized.001
+  digest:
+    algorithm: sha256
+    value: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  size_bytes: 1572864
+
+rights:
+  permitted_scopes:
+    - read
+  revocable: true
+  royalty_policy_ref: null
+
+created_at: "2026-08-01T07:31:00+09:00"
+lifecycle_status: proposed
