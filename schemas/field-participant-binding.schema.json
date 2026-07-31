@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kazene:agentic-shared-field-protocol:field-participant-binding:0.1.0",
+  "title": "Field Participant Binding",
+  "description": "Binds a participant to a shared field with explicit scopes and conditions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_type",
+    "binding_id",
+    "field_id",
+    "participant",
+    "decision",
+    "granted_access_scopes",
+    "allowed_resource_domains",
+    "valid_from",
+    "conditions",
+    "issued_by",
+    "issued_at",
+    "reason",
+    "lifecycle_status"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "record_type": {
+      "const": "field-participant-binding"
+    },
+    "binding_id": {
+      "type": "string",
+      "pattern": "^binding:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "field_id": {
+      "type": "string",
+      "pattern": "^field:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "participant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "participant_id",
+        "participant_type"
+      ],
+      "properties": {
+        "participant_id": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 160
+        },
+        "participant_type": {
+          "type": "string",
+          "enum": [
+            "human",
+            "agent",
+            "organization",
+            "service"
+          ]
+        }
+      }
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "admitted",
+        "denied",
+        "suspended"
+      ]
+    },
+    "granted_access_scopes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "discover",
+          "read",
+          "contribute",
+          "derive",
+          "execute",
+          "redistribute",
+          "commercialize",
+          "administer"
+        ]
+      }
+    },
+    "allowed_resource_domains": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "knowledge",
+          "memory",
+          "reasoning",
+          "compute",
+          "value"
+        ]
+      }
+    },
+    "authorization_receipt_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200
+    },
+    "valid_from": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "valid_until": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "conditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "derivative_trace_required",
+        "contribution_audit_required"
+      ],
+      "properties": {
+        "max_contribution_bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "derivative_trace_required": {
+          "type": "boolean"
+        },
+        "contribution_audit_required": {
+          "type": "boolean"
+        },
+        "royalty_policy_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 3,
+          "maxLength": 200
+        }
+      }
+    },
+    "issued_by": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "lifecycle_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "expired",
+        "revoked"
+      ]
+    }
+  }
+}
