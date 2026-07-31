@@ -1,0 +1,18 @@
+schema_version: "0.2.0"
+record_type: field-contribution-request
+
+request_id: contribution-request:wind.reasoning-residue.001
+field_id: field:wind.shared-reasoning.v1
+envelope_id: envelope:wind.reasoning-residue.001
+contributor_binding_id: binding:wind.kidney-filter.v1
+requested_disposition: admit
+declared_purpose: >-
+  Admit a detoxified reasoning residue so other agents can reuse
+  the verified failure pattern without repeating the same search.
+requested_access_scopes:
+  - read
+  - derive
+  - redistribute
+requested_retention_seconds: 604800
+submitted_at: "2026-08-01T07:12:00+09:00"
+status: pending
