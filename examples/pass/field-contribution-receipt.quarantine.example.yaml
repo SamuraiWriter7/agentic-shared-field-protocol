@@ -1,0 +1,19 @@
+schema_version: "0.2.0"
+record_type: field-contribution-receipt
+
+receipt_id: contribution-receipt:wind.hazardous-residue.001
+request_id: contribution-request:wind.hazardous-residue.001
+assessment_id: contribution-assessment:wind.hazardous-residue.001
+field_id: field:wind.shared-reasoning.v1
+envelope_id: envelope:wind.hazardous-residue.001
+outcome: quarantined
+quarantine_record_id: quarantine:wind.hazardous-residue.001
+effective_classification: hazardous
+
+obligations:
+  derivative_trace_required: false
+  royalty_settlement_required: false
+  revocation_propagation_required: true
+
+issued_by: agent:field-boundary-controller.v1
+issued_at: "2026-08-01T07:24:00+09:00"
