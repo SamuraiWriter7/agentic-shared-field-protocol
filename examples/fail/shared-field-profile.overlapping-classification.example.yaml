@@ -1,0 +1,75 @@
+schema_version: "0.1.0"
+record_type: shared-field-profile
+
+field_id: field:wind.overlap-test.v1
+name: Invalid Overlap Field
+description: >-
+  Invalid example in which a hazardous resource is both accepted
+  and rejected by the same inbound permeability policy.
+
+field_kind: composite
+
+origin:
+  origin_id: origin:wind.shared-field-concept.v1
+  created_by: human:shidenkai-alpha
+  created_at: "2026-08-01T06:41:00+09:00"
+
+governance:
+  governance_mode: stewarded
+  policy_ref: policy:wind-field-governance.v1
+  steward_ids:
+    - human:shidenkai-alpha
+
+resource_domains:
+  - knowledge
+  - memory
+  - reasoning
+  - value
+
+access_policy:
+  admission_mode: policy-evaluated
+  allowed_participant_types:
+    - human
+    - agent
+    - service
+  authorization_required: true
+  anonymous_access_allowed: false
+  allowed_access_scopes:
+    - discover
+    - read
+    - contribute
+    - derive
+    - redistribute
+  default_access_scopes:
+    - discover
+    - read
+
+permeability_policy:
+  inbound:
+    origin_trace_required: true
+    authorization_receipt_required: true
+    audit_required: true
+    accepted_classifications:
+      - verified
+      - provisional
+      - recoverable
+      - hazardous
+    rejected_classifications:
+      - hazardous
+      - private
+      - revoked
+      - exhausted
+  outbound:
+    derivative_trace_required: true
+    royalty_settlement_required: true
+    revocation_propagation_required: true
+
+retention_policy:
+  mode: bounded
+  max_retention_seconds: 2592000
+  deletion_on_revocation: true
+  tombstone_required: true
+
+status: active
+created_at: "2026-08-01T06:41:00+09:00"
+updated_at: "2026-08-01T06:41:00+09:00"
