@@ -1,0 +1,42 @@
+schema_version: "0.1.0"
+record_type: field-participant-binding
+
+binding_id: binding:wind.scope-exceeds-field.v1
+field_id: field:wind.shared-reasoning.v1
+
+participant:
+  participant_id: agent:scope-test.v1
+  participant_type: agent
+
+decision: admitted
+
+granted_access_scopes:
+  - discover
+  - read
+  - contribute
+  - derive
+  - commercialize
+
+allowed_resource_domains:
+  - knowledge
+  - memory
+  - reasoning
+
+authorization_receipt_id: authz:wind.scope-test.v1
+
+valid_from: "2026-08-01T06:45:00+09:00"
+valid_until: "2027-08-01T06:45:00+09:00"
+
+conditions:
+  max_contribution_bytes: 1048576
+  derivative_trace_required: true
+  contribution_audit_required: true
+  royalty_policy_ref: policy:wind-royalty.v1
+
+issued_by: human:shidenkai-alpha
+issued_at: "2026-08-01T06:44:00+09:00"
+reason: >-
+  Invalid example: the binding attempts to grant a commercialize
+  scope that is not permitted by the shared field.
+
+lifecycle_status: active
