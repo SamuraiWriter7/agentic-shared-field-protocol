@@ -1,4 +1,4 @@
-schema_version: "0.1.0"
+schema_version: "0.2.0"
 record_type: shared-field-profile
 
 field_id: field:wind.shared-reasoning.v1
@@ -63,6 +63,15 @@ permeability_policy:
     royalty_settlement_required: true
     revocation_propagation_required: true
 
+contribution_policy:
+  max_resource_bytes: 2097152
+  allowed_content_modes:
+    - reference
+  required_digest_algorithms:
+    - sha256
+  duplicate_handling: version
+  quarantine_supported: true
+
 retention_policy:
   mode: bounded
   max_retention_seconds: 2592000
@@ -71,4 +80,4 @@ retention_policy:
 
 status: active
 created_at: "2026-08-01T06:41:00+09:00"
-updated_at: "2026-08-01T06:41:00+09:00"
+updated_at: "2026-08-01T08:00:00+09:00"
