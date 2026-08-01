@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kazene:agentic-shared-field-protocol:field-resource-lease:0.3.0",
+  "title": "Field Resource Lease",
+  "description": "Issues a time-bounded capability for an authorized field resource.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_type",
+    "lease_id",
+    "reuse_authorization_id",
+    "field_id",
+    "field_resource_id",
+    "lessee_binding_id",
+    "granted_scopes",
+    "token_digest",
+    "issued_at",
+    "starts_at",
+    "expires_at",
+    "return_due_at",
+    "lease_status"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.3.0"
+    },
+    "record_type": {
+      "const": "field-resource-lease"
+    },
+    "lease_id": {
+      "type": "string",
+      "pattern": "^lease:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "reuse_authorization_id": {
+      "type": "string",
+      "pattern": "^reuse-authz:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "field_id": {
+      "type": "string",
+      "pattern": "^field:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "field_resource_id": {
+      "type": "string",
+      "pattern": "^field-resource:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "lessee_binding_id": {
+      "type": "string",
+      "pattern": "^binding:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "granted_scopes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "read",
+          "derive",
+          "execute",
+          "redistribute",
+          "commercialize"
+        ]
+      }
+    },
+    "token_digest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "starts_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "return_due_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "lease_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "revoked",
+        "expired",
+        "closed"
+      ]
+    }
+  }
+}
