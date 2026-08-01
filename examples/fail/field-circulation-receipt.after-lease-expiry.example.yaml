@@ -1,0 +1,32 @@
+circulation_receipt_id: circulation-receipt:wind.after-expiry.001
+completed_at: '2026-08-01T08:50:00+09:00'
+field_id: field:wind.shared-reasoning.v1
+field_resource_id: field-resource:wind.reasoning-residue.001
+issued_at: '2026-08-01T08:51:00+09:00'
+issued_by: agent:field-circulation-controller.v1
+lease_id: lease:wind.reasoning-residue.001
+lessee_binding_id: binding:wind.derivative-worker.v1
+obligations:
+  derivative_trace_ids:
+  - trace:derived-safety-pattern.001
+  lease_closed: true
+  revocation_acknowledged: true
+  royalty_status: pending
+record_type: field-circulation-receipt
+return_records:
+- contribution_request_id: contribution-request:wind.derived-safety-pattern.001
+  envelope_id: envelope:wind.derived-safety-pattern.001
+  return_role: derivative
+  return_status: submitted
+reuse_authorization_id: reuse-authz:wind.reasoning-residue.001
+reuse_request_id: reuse-request:wind.reasoning-residue.001
+schema_version: 0.3.0
+usage:
+  actual_scopes:
+  - read
+  - derive
+  bytes_read: 4096
+  ended_at: '2026-08-01T08:49:00+09:00'
+  execution_id: execution:wind.derive-safety-pattern.001
+  started_at: '2026-08-01T08:30:00+09:00'
+  status: completed
