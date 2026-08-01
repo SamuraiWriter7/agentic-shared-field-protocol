@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kazene:agentic-shared-field-protocol:field-contribution-receipt:0.2.0",
+  "title": "Field Contribution Receipt",
+  "description": "Records the final boundary outcome for a contribution request.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_type",
+    "receipt_id",
+    "request_id",
+    "assessment_id",
+    "field_id",
+    "envelope_id",
+    "outcome",
+    "obligations",
+    "issued_by",
+    "issued_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.2.0"
+    },
+    "record_type": {
+      "const": "field-contribution-receipt"
+    },
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^contribution-receipt:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^contribution-request:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "assessment_id": {
+      "type": "string",
+      "pattern": "^contribution-assessment:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "field_id": {
+      "type": "string",
+      "pattern": "^field:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "envelope_id": {
+      "type": "string",
+      "pattern": "^envelope:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "admitted",
+        "rejected",
+        "quarantined",
+        "pending-human-review"
+      ]
+    },
+    "field_resource_id": {
+      "type": "string",
+      "pattern": "^field-resource:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "quarantine_record_id": {
+      "type": "string",
+      "pattern": "^quarantine:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "effective_classification": {
+      "type": "string",
+      "enum": [
+        "verified",
+        "provisional",
+        "recoverable",
+        "dormant",
+        "hazardous",
+        "private",
+        "revoked",
+        "exhausted"
+      ]
+    },
+    "admitted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "obligations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "derivative_trace_required",
+        "royalty_settlement_required",
+        "revocation_propagation_required"
+      ],
+      "properties": {
+        "derivative_trace_required": {
+          "type": "boolean"
+        },
+        "royalty_settlement_required": {
+          "type": "boolean"
+        },
+        "revocation_propagation_required": {
+          "type": "boolean"
+        },
+        "retention_until": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "issued_by": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
