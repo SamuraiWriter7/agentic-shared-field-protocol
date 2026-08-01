@@ -1,0 +1,35 @@
+schema_version: 0.3.0
+record_type: shared-resource-envelope
+envelope_id: envelope:wind.derived-safety-pattern.001
+field_id: field:wind.shared-reasoning.v1
+contributor_binding_id: binding:wind.derivative-worker.v1
+resource_id: resource:derived-safety-pattern.001
+resource_domain: reasoning
+resource_kind: reasoning-artifact
+proposed_classification: provisional
+origin:
+  origin_id: origin:derived-safety-pattern.001
+  origin_trace_id: trace:derived-safety-pattern.001
+  produced_by: agent:derivative-worker.v1
+  produced_at: '2026-08-01T08:48:00+09:00'
+  derivative_of:
+  - field-resource:wind.reasoning-residue.001
+  - trace:reasoning-session.001
+content:
+  mode: reference
+  media_type: application/yaml
+  content_ref: urn:resource-store:derived-safety-pattern.001
+  digest:
+    algorithm: sha256
+    value: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  size_bytes: 8192
+  encoding: utf-8
+rights:
+  permitted_scopes:
+  - read
+  - derive
+  revocable: true
+  royalty_policy_ref: policy:wind-royalty.v1
+created_at: '2026-08-01T08:49:00+09:00'
+expires_at: '2026-09-01T08:49:00+09:00'
+lifecycle_status: proposed
