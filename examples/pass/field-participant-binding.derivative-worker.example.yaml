@@ -1,0 +1,29 @@
+schema_version: 0.3.0
+record_type: field-participant-binding
+binding_id: binding:wind.derivative-worker.v1
+field_id: field:wind.shared-reasoning.v1
+participant:
+  participant_id: agent:derivative-worker.v1
+  participant_type: agent
+decision: admitted
+granted_access_scopes:
+- discover
+- read
+- contribute
+- derive
+allowed_resource_domains:
+- reasoning
+authorization_receipt_id: authz:wind.derivative-worker.v1
+valid_from: '2026-08-01T08:20:00+09:00'
+valid_until: '2027-08-01T08:20:00+09:00'
+conditions:
+  max_contribution_bytes: 524288
+  max_lease_seconds: 1800
+  max_active_leases: 4
+  derivative_trace_required: true
+  contribution_audit_required: true
+  royalty_policy_ref: policy:wind-royalty.v1
+issued_by: human:shidenkai-alpha
+issued_at: '2026-08-01T08:19:00+09:00'
+reason: Admitted to lease reusable reasoning artifacts and return traceable derivatives.
+lifecycle_status: active
