@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kazene:agentic-shared-field-protocol:field-contribution-assessment:0.2.0",
+  "title": "Field Contribution Assessment",
+  "description": "Records policy and safety evaluation of a field contribution request.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_type",
+    "assessment_id",
+    "request_id",
+    "field_id",
+    "envelope_id",
+    "assessor_id",
+    "checks",
+    "decision",
+    "reason_codes",
+    "assessed_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.2.0"
+    },
+    "record_type": {
+      "const": "field-contribution-assessment"
+    },
+    "assessment_id": {
+      "type": "string",
+      "pattern": "^contribution-assessment:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^contribution-request:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "field_id": {
+      "type": "string",
+      "pattern": "^field:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "envelope_id": {
+      "type": "string",
+      "pattern": "^envelope:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "assessor_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin_trace",
+        "contributor_authorization",
+        "domain_compatibility",
+        "classification_compatibility",
+        "size_limit",
+        "content_audit",
+        "rights_compatibility"
+      ],
+      "properties": {
+        "origin_trace": {
+          "$ref": "#/$defs/checkResult"
+        },
+        "contributor_authorization": {
+          "$ref": "#/$defs/checkResult"
+        },
+        "domain_compatibility": {
+          "$ref": "#/$defs/checkResult"
+        },
+        "classification_compatibility": {
+          "$ref": "#/$defs/checkResult"
+        },
+        "size_limit": {
+          "$ref": "#/$defs/checkResult"
+        },
+        "content_audit": {
+          "$ref": "#/$defs/checkResult"
+        },
+        "rights_compatibility": {
+          "$ref": "#/$defs/checkResult"
+        }
+      }
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "accept",
+        "reject",
+        "quarantine",
+        "human-review-required"
+      ]
+    },
+    "resolved_classification": {
+      "$ref": "#/$defs/resourceClassification"
+    },
+    "reason_codes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z0-9_]{3,80}$"
+      }
+    },
+    "assessed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "checkResult": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "fail",
+        "not-required"
+      ]
+    },
+    "resourceClassification": {
+      "type": "string",
+      "enum": [
+        "verified",
+        "provisional",
+        "recoverable",
+        "dormant",
+        "hazardous",
+        "private",
+        "revoked",
+        "exhausted"
+      ]
+    }
+  }
+}
