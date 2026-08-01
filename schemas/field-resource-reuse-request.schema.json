@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kazene:agentic-shared-field-protocol:field-resource-reuse-request:0.3.0",
+  "title": "Field Resource Reuse Request",
+  "description": "Requests temporary, scoped use of an admitted field resource.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_type",
+    "reuse_request_id",
+    "field_id",
+    "field_resource_id",
+    "requester_binding_id",
+    "requested_scopes",
+    "declared_purpose",
+    "requested_lease_seconds",
+    "intended_return_kinds",
+    "requested_at",
+    "status"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.3.0"
+    },
+    "record_type": {
+      "const": "field-resource-reuse-request"
+    },
+    "reuse_request_id": {
+      "type": "string",
+      "pattern": "^reuse-request:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "field_id": {
+      "type": "string",
+      "pattern": "^field:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "field_resource_id": {
+      "type": "string",
+      "pattern": "^field-resource:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "requester_binding_id": {
+      "type": "string",
+      "pattern": "^binding:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "requested_scopes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "read",
+          "derive",
+          "execute",
+          "redistribute",
+          "commercialize"
+        ]
+      }
+    },
+    "declared_purpose": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "requested_lease_seconds": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "intended_return_kinds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "derivative",
+          "residual",
+          "failure-evidence"
+        ]
+      }
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "cancelled"
+      ]
+    }
+  }
+}
