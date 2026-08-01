@@ -1,0 +1,24 @@
+schema_version: 0.3.0
+record_type: field-resource-reuse-authorization
+reuse_authorization_id: reuse-authz:wind.reasoning-residue.001
+reuse_request_id: reuse-request:wind.reasoning-residue.001
+field_id: field:wind.shared-reasoning.v1
+field_resource_id: field-resource:wind.reasoning-residue.001
+requester_binding_id: binding:wind.derivative-worker.v1
+decision: authorized
+granted_scopes:
+- read
+- derive
+lease_seconds: 1200
+conditions:
+  derivative_trace_required: true
+  return_record_required: true
+  royalty_settlement_required: true
+  revocation_propagation_required: true
+  royalty_policy_ref: policy:wind-royalty.v1
+reason_codes:
+- policy-compatible
+- origin-verified
+- least-scope-grant
+authorized_by: agent:field-reuse-controller.v1
+authorized_at: '2026-08-01T08:26:00+09:00'
