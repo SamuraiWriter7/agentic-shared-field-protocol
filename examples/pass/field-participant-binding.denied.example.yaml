@@ -1,28 +1,20 @@
-schema_version: "0.2.0"
+schema_version: 0.3.0
 record_type: field-participant-binding
-
 binding_id: binding:wind.untrusted-scraper.denied.v1
 field_id: field:wind.shared-reasoning.v1
-
 participant:
   participant_id: service:untrusted-scraper.v1
   participant_type: service
-
 decision: denied
-
 granted_access_scopes: []
 allowed_resource_domains: []
-valid_from: "2026-08-01T07:00:00+09:00"
-
+valid_from: '2026-08-01T07:00:00+09:00'
 conditions:
   derivative_trace_required: false
   contribution_audit_required: false
   royalty_policy_ref: null
-
 issued_by: human:shidenkai-alpha
-issued_at: "2026-08-01T06:59:00+09:00"
-reason: >-
-  Denied because the service could not provide a verifiable origin
-  or an acceptable resource-handling policy.
-
+issued_at: '2026-08-01T06:59:00+09:00'
+reason: Denied because the service could not provide a verifiable origin or an acceptable
+  resource-handling policy.
 lifecycle_status: inactive
