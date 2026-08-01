@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate Agentic Shared Field Protocol v0.2 examples."""
+"""Validate Agentic Shared Field Protocol v0.3 examples."""
 
 from __future__ import annotations
 
@@ -31,6 +31,14 @@ SCHEMA_FILES = {
     / "field-contribution-assessment.schema.json",
     "field-contribution-receipt": SCHEMA_DIR
     / "field-contribution-receipt.schema.json",
+    "field-resource-reuse-request": SCHEMA_DIR
+    / "field-resource-reuse-request.schema.json",
+    "field-resource-reuse-authorization": SCHEMA_DIR
+    / "field-resource-reuse-authorization.schema.json",
+    "field-resource-lease": SCHEMA_DIR
+    / "field-resource-lease.schema.json",
+    "field-circulation-receipt": SCHEMA_DIR
+    / "field-circulation-receipt.schema.json",
 }
 
 TYPE_ORDER = [
@@ -40,6 +48,10 @@ TYPE_ORDER = [
     "field-contribution-request",
     "field-contribution-assessment",
     "field-contribution-receipt",
+    "field-resource-reuse-request",
+    "field-resource-reuse-authorization",
+    "field-resource-lease",
+    "field-circulation-receipt",
 ]
 
 ID_FIELDS = {
@@ -49,6 +61,10 @@ ID_FIELDS = {
     "field-contribution-request": "request_id",
     "field-contribution-assessment": "assessment_id",
     "field-contribution-receipt": "receipt_id",
+    "field-resource-reuse-request": "reuse_request_id",
+    "field-resource-reuse-authorization": "reuse_authorization_id",
+    "field-resource-lease": "lease_id",
+    "field-circulation-receipt": "circulation_receipt_id",
 }
 
 PARTICIPANT_PREFIXES = {
@@ -150,6 +166,19 @@ def get_record(
     return record, []
 
 
+def find_field_resource_receipt(
+    registry: Registry,
+    field_resource_id: str,
+) -> dict[str, Any] | None:
+    for receipt in registry["field-contribution-receipt"].values():
+        if (
+            receipt.get("outcome") == "admitted"
+            and receipt.get("field_resource_id") == field_resource_id
+        ):
+            return receipt
+    return None
+
+
 def validate_shared_field_profile(
     document: dict[str, Any],
     _: Registry,
@@ -228,6 +257,33 @@ def validate_shared_field_profile(
         errors.append(
             "contribution_policy.duplicate_handling: replace requires "
             "retention_policy.tombstone_required to be true"
+        )
+
+    reuse = document["reuse_policy"]
+    reuse_scopes = set(reuse["allowed_reuse_scopes"])
+    invalid_reuse_scopes = sorted(reuse_scopes - allowed_scopes)
+    if invalid_reuse_scopes:
+        errors.append(
+            "reuse_policy.allowed_reuse_scopes: scopes not present in "
+            f"access_policy.allowed_access_scopes: {invalid_reuse_scopes}"
+        )
+
+    if (
+        reuse["derived_resource_return_required"]
+        and "derive" not in reuse_scopes
+    ):
+        errors.append(
+            "reuse_policy.derived_resource_return_required: derive must be "
+            "an allowed reuse scope"
+        )
+
+    if (
+        reuse["derived_resource_return_required"]
+        and not reuse["circulation_receipt_required"]
+    ):
+        errors.append(
+            "reuse_policy: derived resource return requires circulation "
+            "receipts"
         )
 
     retention = document["retention_policy"]
@@ -431,6 +487,27 @@ def validate_field_participant_binding(
             errors.append(
                 "conditions.royalty_policy_ref: required for "
                 "derivative scopes"
+            )
+
+    reusable_scopes = {
+        "read", "derive", "execute", "redistribute", "commercialize"
+    }
+    if scopes & reusable_scopes:
+        if "max_lease_seconds" not in conditions:
+            errors.append(
+                "conditions.max_lease_seconds: required for reusable scopes"
+            )
+        elif conditions["max_lease_seconds"] > field["reuse_policy"][
+            "max_lease_seconds"
+        ]:
+            errors.append(
+                "conditions.max_lease_seconds: must not exceed field reuse "
+                "policy"
+            )
+
+        if "max_active_leases" not in conditions:
+            errors.append(
+                "conditions.max_active_leases: required for reusable scopes"
             )
 
     return errors
@@ -1045,6 +1122,651 @@ def validate_field_contribution_receipt(
     return errors
 
 
+
+def validate_field_resource_reuse_request(
+    document: dict[str, Any],
+    registry: Registry,
+) -> list[str]:
+    errors: list[str] = []
+    field, field_errors = get_record(
+        registry,
+        "shared-field-profile",
+        document["field_id"],
+        "field_id",
+    )
+    binding, binding_errors = get_record(
+        registry,
+        "field-participant-binding",
+        document["requester_binding_id"],
+        "requester_binding_id",
+    )
+    errors.extend(field_errors)
+    errors.extend(binding_errors)
+
+    resource_receipt = find_field_resource_receipt(
+        registry,
+        document["field_resource_id"],
+    )
+    if resource_receipt is None:
+        errors.append(
+            "field_resource_id: no admitted contribution receipt exists"
+        )
+
+    if field is None or binding is None or resource_receipt is None:
+        return errors
+
+    if resource_receipt["field_id"] != document["field_id"]:
+        errors.append(
+            "field_resource_id: resource belongs to a different field"
+        )
+
+    if binding["field_id"] != document["field_id"]:
+        errors.append(
+            "requester_binding_id: binding belongs to a different field"
+        )
+
+    if (
+        binding["decision"] != "admitted"
+        or binding["lifecycle_status"] != "active"
+    ):
+        errors.append(
+            "requester_binding_id: binding must be admitted and active"
+        )
+
+    envelope = registry["shared-resource-envelope"].get(
+        resource_receipt["envelope_id"]
+    )
+    if envelope is None:
+        errors.append(
+            "field_resource_id: admitted resource envelope is unavailable"
+        )
+        return errors
+
+    requested_scopes = set(document["requested_scopes"])
+    field_scopes = set(field["reuse_policy"]["allowed_reuse_scopes"])
+    binding_scopes = set(binding["granted_access_scopes"])
+    rights_scopes = set(envelope["rights"]["permitted_scopes"])
+
+    excess_field = sorted(requested_scopes - field_scopes)
+    if excess_field:
+        errors.append(
+            "requested_scopes: scopes exceed field reuse policy: "
+            f"{excess_field}"
+        )
+
+    excess_binding = sorted(requested_scopes - binding_scopes)
+    if excess_binding:
+        errors.append(
+            "requested_scopes: scopes exceed requester binding: "
+            f"{excess_binding}"
+        )
+
+    excess_rights = sorted(requested_scopes - rights_scopes)
+    if excess_rights:
+        errors.append(
+            "requested_scopes: scopes exceed resource rights: "
+            f"{excess_rights}"
+        )
+
+    if envelope["resource_domain"] not in binding["allowed_resource_domains"]:
+        errors.append(
+            "requester_binding_id: binding does not permit the resource domain"
+        )
+
+    requested_lease = document["requested_lease_seconds"]
+    max_lease = min(
+        field["reuse_policy"]["max_lease_seconds"],
+        binding["conditions"].get(
+            "max_lease_seconds",
+            field["reuse_policy"]["max_lease_seconds"],
+        ),
+    )
+    if requested_lease > max_lease:
+        errors.append(
+            "requested_lease_seconds: exceeds field or participant lease limit"
+        )
+
+    requested_at = parse_datetime(document["requested_at"])
+    admitted_at = parse_datetime(resource_receipt["admitted_at"])
+    if requested_at < admitted_at:
+        errors.append(
+            "requested_at: must not be earlier than resource admission"
+        )
+
+    valid_from = parse_datetime(binding["valid_from"])
+    if requested_at < valid_from:
+        errors.append(
+            "requested_at: occurs before requester binding validity"
+        )
+    valid_until_raw = binding.get("valid_until")
+    if valid_until_raw and requested_at >= parse_datetime(valid_until_raw):
+        errors.append(
+            "requested_at: occurs after requester binding validity"
+        )
+
+    retention_until_raw = resource_receipt["obligations"].get(
+        "retention_until"
+    )
+    requested_end = requested_at + timedelta(seconds=requested_lease)
+    if retention_until_raw and requested_end > parse_datetime(
+        retention_until_raw
+    ):
+        errors.append(
+            "requested_lease_seconds: extends beyond resource retention"
+        )
+
+    envelope_expires_raw = envelope.get("expires_at")
+    if envelope_expires_raw and requested_end > parse_datetime(
+        envelope_expires_raw
+    ):
+        errors.append(
+            "requested_lease_seconds: extends beyond resource envelope expiry"
+        )
+
+    derivative_scopes = {"derive", "redistribute", "commercialize"}
+    if requested_scopes & derivative_scopes:
+        if (
+            field["reuse_policy"]["derived_resource_return_required"]
+            and not document["intended_return_kinds"]
+        ):
+            errors.append(
+                "intended_return_kinds: required for derivative reuse"
+            )
+
+    if document["status"] != "pending":
+        errors.append(
+            "status: only pending requests may be authorized"
+        )
+
+    return errors
+
+
+def validate_field_resource_reuse_authorization(
+    document: dict[str, Any],
+    registry: Registry,
+) -> list[str]:
+    errors: list[str] = []
+    request, request_errors = get_record(
+        registry,
+        "field-resource-reuse-request",
+        document["reuse_request_id"],
+        "reuse_request_id",
+    )
+    errors.extend(request_errors)
+    if request is None:
+        return errors
+
+    field = registry["shared-field-profile"].get(request["field_id"])
+    binding = registry["field-participant-binding"].get(
+        request["requester_binding_id"]
+    )
+    resource_receipt = find_field_resource_receipt(
+        registry,
+        request["field_resource_id"],
+    )
+    if field is None or binding is None or resource_receipt is None:
+        errors.append(
+            "reuse_request_id: referenced dependencies are incomplete"
+        )
+        return errors
+
+    envelope = registry["shared-resource-envelope"].get(
+        resource_receipt["envelope_id"]
+    )
+    if envelope is None:
+        errors.append(
+            "reuse_request_id: admitted resource envelope is unavailable"
+        )
+        return errors
+
+    for key in ["field_id", "field_resource_id", "requester_binding_id"]:
+        if document[key] != request[key]:
+            errors.append(f"{key}: does not match reuse request")
+
+    authorized_at = parse_datetime(document["authorized_at"])
+    requested_at = parse_datetime(request["requested_at"])
+    if authorized_at < requested_at:
+        errors.append(
+            "authorized_at: must not be earlier than requested_at"
+        )
+
+    decision = document["decision"]
+    granted = set(document["granted_scopes"])
+    lease_seconds = document["lease_seconds"]
+    conditions = document["conditions"]
+
+    if decision == "authorized":
+        if request["status"] != "pending":
+            errors.append(
+                "decision: only a pending reuse request may be authorized"
+            )
+        if not granted:
+            errors.append(
+                "granted_scopes: authorized reuse requires at least one scope"
+            )
+
+        requested_scopes = set(request["requested_scopes"])
+        excess_requested = sorted(granted - requested_scopes)
+        if excess_requested:
+            errors.append(
+                "granted_scopes: scopes were not requested: "
+                f"{excess_requested}"
+            )
+
+        for label, permitted in [
+            ("requester binding", set(binding["granted_access_scopes"])),
+            ("field reuse policy", set(field["reuse_policy"]["allowed_reuse_scopes"])),
+            ("resource rights", set(envelope["rights"]["permitted_scopes"])),
+        ]:
+            excess = sorted(granted - permitted)
+            if excess:
+                errors.append(
+                    f"granted_scopes: scopes exceed {label}: {excess}"
+                )
+
+        max_lease = min(
+            request["requested_lease_seconds"],
+            field["reuse_policy"]["max_lease_seconds"],
+            binding["conditions"].get(
+                "max_lease_seconds",
+                field["reuse_policy"]["max_lease_seconds"],
+            ),
+        )
+        if lease_seconds < 1 or lease_seconds > max_lease:
+            errors.append(
+                "lease_seconds: must be positive and within all lease limits"
+            )
+
+        derivative_scopes = {"derive", "redistribute", "commercialize"}
+        derivative_use = bool(granted & derivative_scopes)
+        expected_derivative = (
+            derivative_use
+            and field["permeability_policy"]["outbound"][
+                "derivative_trace_required"
+            ]
+        )
+        expected_return = (
+            derivative_use
+            and field["reuse_policy"]["derived_resource_return_required"]
+        )
+        expected_royalty = (
+            derivative_use
+            and field["permeability_policy"]["outbound"][
+                "royalty_settlement_required"
+            ]
+        )
+        expected_revocation = resource_receipt["obligations"][
+            "revocation_propagation_required"
+        ]
+
+        expectations = {
+            "derivative_trace_required": expected_derivative,
+            "return_record_required": expected_return,
+            "royalty_settlement_required": expected_royalty,
+            "revocation_propagation_required": expected_revocation,
+        }
+        for key, expected in expectations.items():
+            if conditions[key] != expected:
+                errors.append(
+                    f"conditions.{key}: expected {expected!r} from policy"
+                )
+
+        expected_policy = None
+        if expected_royalty:
+            expected_policy = (
+                envelope["rights"].get("royalty_policy_ref")
+                or binding["conditions"].get("royalty_policy_ref")
+            )
+        if conditions.get("royalty_policy_ref") != expected_policy:
+            errors.append(
+                "conditions.royalty_policy_ref: does not match resource or "
+                "binding royalty policy"
+            )
+
+        retention_until_raw = resource_receipt["obligations"].get(
+            "retention_until"
+        )
+        if retention_until_raw:
+            authorization_end = authorized_at + timedelta(
+                seconds=lease_seconds
+            )
+            if authorization_end > parse_datetime(retention_until_raw):
+                errors.append(
+                    "lease_seconds: authorization extends beyond resource "
+                    "retention"
+                )
+
+    else:
+        if granted:
+            errors.append(
+                "granted_scopes: denied or review-required decisions grant "
+                "no scopes"
+            )
+        if lease_seconds != 0:
+            errors.append(
+                "lease_seconds: denied or review-required decisions use zero"
+            )
+
+    return errors
+
+
+def validate_field_resource_lease(
+    document: dict[str, Any],
+    registry: Registry,
+) -> list[str]:
+    errors: list[str] = []
+    authorization, lookup_errors = get_record(
+        registry,
+        "field-resource-reuse-authorization",
+        document["reuse_authorization_id"],
+        "reuse_authorization_id",
+    )
+    errors.extend(lookup_errors)
+    if authorization is None:
+        return errors
+
+    if authorization["decision"] != "authorized":
+        errors.append(
+            "reuse_authorization_id: only authorized decisions may issue a lease"
+        )
+
+    mappings = {
+        "field_id": "field_id",
+        "field_resource_id": "field_resource_id",
+        "lessee_binding_id": "requester_binding_id",
+    }
+    for lease_key, auth_key in mappings.items():
+        if document[lease_key] != authorization[auth_key]:
+            errors.append(
+                f"{lease_key}: does not match reuse authorization"
+            )
+
+    if set(document["granted_scopes"]) != set(
+        authorization["granted_scopes"]
+    ):
+        errors.append(
+            "granted_scopes: must exactly match reuse authorization"
+        )
+
+    authorized_at = parse_datetime(authorization["authorized_at"])
+    issued_at = parse_datetime(document["issued_at"])
+    starts_at = parse_datetime(document["starts_at"])
+    expires_at = parse_datetime(document["expires_at"])
+    return_due_at = parse_datetime(document["return_due_at"])
+
+    if issued_at < authorized_at:
+        errors.append(
+            "issued_at: must not be earlier than authorization"
+        )
+    if starts_at < issued_at:
+        errors.append(
+            "starts_at: must not be earlier than lease issuance"
+        )
+
+    expected_expiry = starts_at + timedelta(
+        seconds=authorization["lease_seconds"]
+    )
+    if expires_at != expected_expiry:
+        errors.append(
+            "expires_at: must equal starts_at plus authorized lease_seconds"
+        )
+    if return_due_at != expires_at:
+        errors.append(
+            "return_due_at: must equal lease expires_at"
+        )
+
+    resource_receipt = find_field_resource_receipt(
+        registry,
+        document["field_resource_id"],
+    )
+    if resource_receipt is None:
+        errors.append(
+            "field_resource_id: no admitted resource exists"
+        )
+    else:
+        retention_until_raw = resource_receipt["obligations"].get(
+            "retention_until"
+        )
+        if retention_until_raw and expires_at > parse_datetime(
+            retention_until_raw
+        ):
+            errors.append(
+                "expires_at: lease exceeds resource retention"
+            )
+
+    if document["lease_status"] == "active" and expires_at <= starts_at:
+        errors.append(
+            "lease_status: active lease requires a positive time window"
+        )
+
+    return errors
+
+
+def validate_field_circulation_receipt(
+    document: dict[str, Any],
+    registry: Registry,
+) -> list[str]:
+    errors: list[str] = []
+    lease, lease_errors = get_record(
+        registry,
+        "field-resource-lease",
+        document["lease_id"],
+        "lease_id",
+    )
+    authorization, auth_errors = get_record(
+        registry,
+        "field-resource-reuse-authorization",
+        document["reuse_authorization_id"],
+        "reuse_authorization_id",
+    )
+    request, request_errors = get_record(
+        registry,
+        "field-resource-reuse-request",
+        document["reuse_request_id"],
+        "reuse_request_id",
+    )
+    errors.extend(lease_errors)
+    errors.extend(auth_errors)
+    errors.extend(request_errors)
+    if lease is None or authorization is None or request is None:
+        return errors
+
+    if lease["reuse_authorization_id"] != document["reuse_authorization_id"]:
+        errors.append(
+            "reuse_authorization_id: does not match lease"
+        )
+    if authorization["reuse_request_id"] != document["reuse_request_id"]:
+        errors.append(
+            "reuse_request_id: does not match authorization"
+        )
+
+    mappings = {
+        "field_id": lease["field_id"],
+        "field_resource_id": lease["field_resource_id"],
+        "lessee_binding_id": lease["lessee_binding_id"],
+    }
+    for key, expected in mappings.items():
+        if document[key] != expected:
+            errors.append(f"{key}: does not match lease")
+
+    usage = document["usage"]
+    actual_scopes = set(usage["actual_scopes"])
+    excess_scopes = sorted(actual_scopes - set(lease["granted_scopes"]))
+    if excess_scopes:
+        errors.append(
+            "usage.actual_scopes: scopes exceed lease: "
+            f"{excess_scopes}"
+        )
+
+    starts_at = parse_datetime(lease["starts_at"])
+    expires_at = parse_datetime(lease["expires_at"])
+    used_from = parse_datetime(usage["started_at"])
+    used_until = parse_datetime(usage["ended_at"])
+
+    if used_from < starts_at:
+        errors.append(
+            "usage.started_at: must not be earlier than lease starts_at"
+        )
+    if used_until < used_from:
+        errors.append(
+            "usage.ended_at: must not be earlier than usage.started_at"
+        )
+    if usage["status"] == "expired":
+        if used_until < expires_at:
+            errors.append(
+                "usage.ended_at: expired usage must reach lease expiry"
+            )
+    elif used_until > expires_at:
+        errors.append(
+            "usage.ended_at: use continued after lease expiry"
+        )
+
+    completed_at = parse_datetime(document["completed_at"])
+    issued_at = parse_datetime(document["issued_at"])
+    if completed_at < used_until:
+        errors.append(
+            "completed_at: must not be earlier than usage.ended_at"
+        )
+    if issued_at < completed_at:
+        errors.append(
+            "issued_at: must not be earlier than completed_at"
+        )
+
+    conditions = authorization["conditions"]
+    obligations = document["obligations"]
+    derivative_scopes = {"derive", "redistribute", "commercialize"}
+    derivative_use = bool(actual_scopes & derivative_scopes)
+
+    if conditions["derivative_trace_required"] and derivative_use:
+        if not obligations["derivative_trace_ids"]:
+            errors.append(
+                "obligations.derivative_trace_ids: required for derivative use"
+            )
+
+    if conditions["return_record_required"] and derivative_use:
+        if not document["return_records"]:
+            errors.append(
+                "return_records: derivative use must return a resource or "
+                "failure record"
+            )
+
+    for index, returned in enumerate(document["return_records"]):
+        prefix = f"return_records.{index}"
+        envelope = registry["shared-resource-envelope"].get(
+            returned["envelope_id"]
+        )
+        contribution_request = registry["field-contribution-request"].get(
+            returned["contribution_request_id"]
+        )
+        if envelope is None:
+            errors.append(
+                f"{prefix}.envelope_id: unknown shared-resource-envelope"
+            )
+            continue
+        if contribution_request is None:
+            errors.append(
+                f"{prefix}.contribution_request_id: unknown contribution request"
+            )
+            continue
+
+        if envelope["field_id"] != document["field_id"]:
+            errors.append(
+                f"{prefix}.envelope_id: returned resource targets another field"
+            )
+        if envelope["contributor_binding_id"] != document[
+            "lessee_binding_id"
+        ]:
+            errors.append(
+                f"{prefix}.envelope_id: return contributor is not the lessee"
+            )
+        if contribution_request["envelope_id"] != returned["envelope_id"]:
+            errors.append(
+                f"{prefix}.contribution_request_id: request references another envelope"
+            )
+        if contribution_request["contributor_binding_id"] != document[
+            "lessee_binding_id"
+        ]:
+            errors.append(
+                f"{prefix}.contribution_request_id: request contributor is not the lessee"
+            )
+        if document["field_resource_id"] not in envelope["origin"][
+            "derivative_of"
+        ]:
+            errors.append(
+                f"{prefix}.envelope_id: origin.derivative_of must include "
+                "the leased field resource"
+            )
+
+        return_status = returned["return_status"]
+        receipt_id = returned.get("contribution_receipt_id")
+        if return_status == "submitted":
+            if receipt_id is not None:
+                errors.append(
+                    f"{prefix}.contribution_receipt_id: forbidden while submitted"
+                )
+            if contribution_request["status"] != "pending":
+                errors.append(
+                    f"{prefix}.return_status: submitted requires a pending request"
+                )
+        else:
+            if receipt_id is None:
+                errors.append(
+                    f"{prefix}.contribution_receipt_id: required for terminal return status"
+                )
+            else:
+                receipt = registry["field-contribution-receipt"].get(
+                    receipt_id
+                )
+                if receipt is None:
+                    errors.append(
+                        f"{prefix}.contribution_receipt_id: unknown contribution receipt"
+                    )
+                else:
+                    if receipt["request_id"] != returned[
+                        "contribution_request_id"
+                    ]:
+                        errors.append(
+                            f"{prefix}.contribution_receipt_id: receipt belongs to another request"
+                        )
+                    if receipt["outcome"] != return_status:
+                        errors.append(
+                            f"{prefix}.return_status: does not match contribution receipt"
+                        )
+
+    if conditions["royalty_settlement_required"] and derivative_use:
+        if obligations["royalty_status"] == "not-required":
+            errors.append(
+                "obligations.royalty_status: royalty remains required"
+            )
+    elif obligations["royalty_status"] != "not-required":
+        errors.append(
+            "obligations.royalty_status: must be not-required when no "
+            "royalty obligation exists"
+        )
+
+    if obligations["royalty_status"] == "settled" and not obligations.get(
+        "royalty_settlement_ref"
+    ):
+        errors.append(
+            "obligations.royalty_settlement_ref: required when settled"
+        )
+
+    if (
+        conditions["revocation_propagation_required"]
+        and not obligations["revocation_acknowledged"]
+    ):
+        errors.append(
+            "obligations.revocation_acknowledged: must be true"
+        )
+
+    if usage["status"] in {"completed", "failed", "cancelled", "expired"}:
+        if not obligations["lease_closed"]:
+            errors.append(
+                "obligations.lease_closed: terminal use must close the lease"
+            )
+
+    return errors
+
 SEMANTIC_VALIDATORS: dict[
     str,
     Callable[[dict[str, Any], Registry], list[str]],
@@ -1055,6 +1777,12 @@ SEMANTIC_VALIDATORS: dict[
     "field-contribution-request": validate_field_contribution_request,
     "field-contribution-assessment": validate_field_contribution_assessment,
     "field-contribution-receipt": validate_field_contribution_receipt,
+    "field-resource-reuse-request": validate_field_resource_reuse_request,
+    "field-resource-reuse-authorization": (
+        validate_field_resource_reuse_authorization
+    ),
+    "field-resource-lease": validate_field_resource_lease,
+    "field-circulation-receipt": validate_field_circulation_receipt,
 }
 
 
@@ -1190,12 +1918,23 @@ def validate_expected_fail(
 
 
 def main() -> int:
-    print("=== Agentic Shared Field Protocol v0.2 Validation ===")
+    print("=== Agentic Shared Field Protocol v0.3 Validation ===")
 
     schemas = {
         record_type: load_json(path)
         for record_type, path in SCHEMA_FILES.items()
     }
+    for schema in schemas.values():
+        Draft202012Validator.check_schema(schema)
+    print("[schema-meta-ok]")
+
+    for example_path in sorted(PASS_DIR.glob("*.yaml")) + sorted(
+        FAIL_DIR.glob("*.yaml")
+    ):
+        load_yaml(example_path)
+    print("[yaml-load-ok]")
+    print()
+
     validators = {
         record_type: Draft202012Validator(
             schema,
@@ -1251,4 +1990,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-
