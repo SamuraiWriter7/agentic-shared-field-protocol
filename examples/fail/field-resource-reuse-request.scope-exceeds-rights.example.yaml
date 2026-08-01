@@ -1,0 +1,18 @@
+declared_purpose: Reuse the detoxified failure pattern to derive a safer decision
+  template.
+field_id: field:wind.shared-reasoning.v1
+field_resource_id: field-resource:wind.reasoning-residue.001
+intended_return_kinds:
+- derivative
+- residual
+record_type: field-resource-reuse-request
+requested_at: '2026-08-01T08:25:00+09:00'
+requested_lease_seconds: 1200
+requested_scopes:
+- read
+- derive
+- commercialize
+requester_binding_id: binding:wind.derivative-worker.v1
+reuse_request_id: reuse-request:wind.scope-escalation.001
+schema_version: 0.3.0
+status: pending
