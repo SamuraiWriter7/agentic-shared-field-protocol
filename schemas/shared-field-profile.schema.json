@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:kazene:agentic-shared-field-protocol:shared-field-profile:0.1.0",
+  "$id": "urn:kazene:agentic-shared-field-protocol:shared-field-profile:0.2.0",
   "title": "Agentic Shared Field Profile",
   "description": "Defines a selectively permeable shared field for autonomous agents.",
   "type": "object",
@@ -16,6 +16,7 @@
     "resource_domains",
     "access_policy",
     "permeability_policy",
+    "contribution_policy",
     "retention_policy",
     "status",
     "created_at",
@@ -23,7 +24,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "0.1.0"
+      "const": "0.2.0"
     },
     "record_type": {
       "const": "shared-field-profile"
@@ -171,34 +172,14 @@
           "minItems": 1,
           "uniqueItems": true,
           "items": {
-            "type": "string",
-            "enum": [
-              "discover",
-              "read",
-              "contribute",
-              "derive",
-              "execute",
-              "redistribute",
-              "commercialize",
-              "administer"
-            ]
+            "$ref": "#/$defs/accessScope"
           }
         },
         "default_access_scopes": {
           "type": "array",
           "uniqueItems": true,
           "items": {
-            "type": "string",
-            "enum": [
-              "discover",
-              "read",
-              "contribute",
-              "derive",
-              "execute",
-              "redistribute",
-              "commercialize",
-              "administer"
-            ]
+            "$ref": "#/$defs/accessScope"
           }
         }
       }
@@ -270,6 +251,59 @@
         }
       }
     },
+    "contribution_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_resource_bytes",
+        "allowed_content_modes",
+        "required_digest_algorithms",
+        "duplicate_handling",
+        "quarantine_supported"
+      ],
+      "properties": {
+        "max_resource_bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "allowed_content_modes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "reference",
+              "inline"
+            ]
+          }
+        },
+        "required_digest_algorithms": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "sha256",
+              "sha384",
+              "sha512"
+            ]
+          }
+        },
+        "duplicate_handling": {
+          "type": "string",
+          "enum": [
+            "reject",
+            "replace",
+            "version"
+          ]
+        },
+        "quarantine_supported": {
+          "type": "boolean"
+        }
+      }
+    },
     "retention_policy": {
       "type": "object",
       "additionalProperties": false,
@@ -318,6 +352,19 @@
     }
   },
   "$defs": {
+    "accessScope": {
+      "type": "string",
+      "enum": [
+        "discover",
+        "read",
+        "contribute",
+        "derive",
+        "execute",
+        "redistribute",
+        "commercialize",
+        "administer"
+      ]
+    },
     "resourceClassification": {
       "type": "string",
       "enum": [
