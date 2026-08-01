@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kazene:agentic-shared-field-protocol:field-contribution-request:0.2.0",
+  "title": "Field Contribution Request",
+  "description": "Requests admission of a shared resource envelope into a shared field.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_type",
+    "request_id",
+    "field_id",
+    "envelope_id",
+    "contributor_binding_id",
+    "requested_disposition",
+    "declared_purpose",
+    "requested_access_scopes",
+    "submitted_at",
+    "status"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.2.0"
+    },
+    "record_type": {
+      "const": "field-contribution-request"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^contribution-request:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "field_id": {
+      "type": "string",
+      "pattern": "^field:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "envelope_id": {
+      "type": "string",
+      "pattern": "^envelope:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "contributor_binding_id": {
+      "type": "string",
+      "pattern": "^binding:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "requested_disposition": {
+      "type": "string",
+      "enum": [
+        "admit",
+        "replace",
+        "version"
+      ]
+    },
+    "declared_purpose": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "requested_access_scopes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "read",
+          "derive",
+          "execute",
+          "redistribute",
+          "commercialize"
+        ]
+      }
+    },
+    "requested_retention_seconds": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "submitted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "withdrawn"
+      ]
+    }
+  }
+}
