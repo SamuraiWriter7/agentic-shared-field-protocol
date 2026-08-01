@@ -1,0 +1,15 @@
+schema_version: 0.3.0
+record_type: field-contribution-request
+request_id: contribution-request:wind.derived-safety-pattern.001
+field_id: field:wind.shared-reasoning.v1
+envelope_id: envelope:wind.derived-safety-pattern.001
+contributor_binding_id: binding:wind.derivative-worker.v1
+requested_disposition: admit
+declared_purpose: Return a traceable safety pattern derived from the leased reasoning
+  residue.
+requested_access_scopes:
+- read
+- derive
+requested_retention_seconds: 604800
+submitted_at: '2026-08-01T08:50:00+09:00'
+status: pending
