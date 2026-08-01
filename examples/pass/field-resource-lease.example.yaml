@@ -1,0 +1,18 @@
+schema_version: 0.3.0
+record_type: field-resource-lease
+lease_id: lease:wind.reasoning-residue.001
+reuse_authorization_id: reuse-authz:wind.reasoning-residue.001
+field_id: field:wind.shared-reasoning.v1
+field_resource_id: field-resource:wind.reasoning-residue.001
+lessee_binding_id: binding:wind.derivative-worker.v1
+granted_scopes:
+- read
+- derive
+token_digest:
+  algorithm: sha256
+  value: dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+issued_at: '2026-08-01T08:27:00+09:00'
+starts_at: '2026-08-01T08:28:00+09:00'
+expires_at: '2026-08-01T08:48:00+09:00'
+return_due_at: '2026-08-01T08:48:00+09:00'
+lease_status: active
