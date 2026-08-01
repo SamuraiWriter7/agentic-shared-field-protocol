@@ -1,0 +1,18 @@
+expires_at: '2026-08-01T09:28:00+09:00'
+field_id: field:wind.shared-reasoning.v1
+field_resource_id: field-resource:wind.reasoning-residue.001
+granted_scopes:
+- read
+- derive
+issued_at: '2026-08-01T08:27:00+09:00'
+lease_id: lease:wind.duration-escalation.001
+lease_status: active
+lessee_binding_id: binding:wind.derivative-worker.v1
+record_type: field-resource-lease
+return_due_at: '2026-08-01T09:28:00+09:00'
+reuse_authorization_id: reuse-authz:wind.reasoning-residue.001
+schema_version: 0.3.0
+starts_at: '2026-08-01T08:28:00+09:00'
+token_digest:
+  algorithm: sha256
+  value: dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
