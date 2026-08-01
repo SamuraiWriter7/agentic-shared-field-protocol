@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kazene:agentic-shared-field-protocol:field-resource-reuse-authorization:0.3.0",
+  "title": "Field Resource Reuse Authorization",
+  "description": "Authorizes or denies a scoped resource lease.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_type",
+    "reuse_authorization_id",
+    "reuse_request_id",
+    "field_id",
+    "field_resource_id",
+    "requester_binding_id",
+    "decision",
+    "granted_scopes",
+    "lease_seconds",
+    "conditions",
+    "reason_codes",
+    "authorized_by",
+    "authorized_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.3.0"
+    },
+    "record_type": {
+      "const": "field-resource-reuse-authorization"
+    },
+    "reuse_authorization_id": {
+      "type": "string",
+      "pattern": "^reuse-authz:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "reuse_request_id": {
+      "type": "string",
+      "pattern": "^reuse-request:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "field_id": {
+      "type": "string",
+      "pattern": "^field:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "field_resource_id": {
+      "type": "string",
+      "pattern": "^field-resource:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "requester_binding_id": {
+      "type": "string",
+      "pattern": "^binding:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "authorized",
+        "denied",
+        "human-review-required"
+      ]
+    },
+    "granted_scopes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "read",
+          "derive",
+          "execute",
+          "redistribute",
+          "commercialize"
+        ]
+      }
+    },
+    "lease_seconds": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "conditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "derivative_trace_required",
+        "return_record_required",
+        "royalty_settlement_required",
+        "revocation_propagation_required",
+        "royalty_policy_ref"
+      ],
+      "properties": {
+        "derivative_trace_required": {
+          "type": "boolean"
+        },
+        "return_record_required": {
+          "type": "boolean"
+        },
+        "royalty_settlement_required": {
+          "type": "boolean"
+        },
+        "revocation_propagation_required": {
+          "type": "boolean"
+        },
+        "royalty_policy_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 3,
+          "maxLength": 200
+        }
+      }
+    },
+    "reason_codes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9._-]{1,79}$"
+      }
+    },
+    "authorized_by": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160
+    },
+    "authorized_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
