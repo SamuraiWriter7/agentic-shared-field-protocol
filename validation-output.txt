@@ -1,0 +1,86 @@
+=== Agentic Shared Field Protocol v0.2 Validation ===
+schema [shared-field-profile]: schemas/shared-field-profile.schema.json
+schema [field-participant-binding]: schemas/field-participant-binding.schema.json
+schema [shared-resource-envelope]: schemas/shared-resource-envelope.schema.json
+schema [field-contribution-request]: schemas/field-contribution-request.schema.json
+schema [field-contribution-assessment]: schemas/field-contribution-assessment.schema.json
+schema [field-contribution-receipt]: schemas/field-contribution-receipt.schema.json
+
+[validate-pass] examples/pass/field-contribution-assessment.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-contribution-assessment.quarantine.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-contribution-receipt.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-contribution-receipt.quarantine.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-contribution-request.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-contribution-request.hazardous.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-participant-binding.denied.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-participant-binding.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-participant-binding.reader.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/shared-field-profile.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/shared-resource-envelope.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/shared-resource-envelope.hazardous.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-fail] examples/fail/field-contribution-assessment.accept-with-failed-audit.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - decision: accept is forbidden when checks fail: ['content_audit']
+  - checks.content_audit: must pass before acceptance
+
+[validate-fail] examples/fail/field-contribution-receipt.admitted-from-quarantine.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - outcome: does not match assessment decision; expected 'quarantined'
+  - effective_classification: is not accepted by field policy
+  - obligations.retention_until: required when the request specifies retention
+
+[validate-fail] examples/fail/field-contribution-request.no-contribute-scope.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - contributor_binding_id: does not match envelope contributor
+  - contributor_binding_id: binding lacks contribute scope
+
+[validate-fail] examples/fail/field-contribution-request.scope-exceeds-rights.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - requested_access_scopes: scopes exceed envelope rights: ['commercialize']
+
+[validate-fail] examples/fail/shared-resource-envelope.oversized.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - content.size_bytes: exceeds contributor binding limit
+
+Validation passed.
