@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kazene:agentic-shared-field-protocol:field-hazard-quarantine-record:0.4.0",
+  "title": "Field Hazard Quarantine Record",
+  "description": "Records containment of a hazardous resource or output.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_type",
+    "quarantine_record_id",
+    "field_id",
+    "residual_assessment_id",
+    "subject",
+    "trigger_classification",
+    "containment",
+    "release_policy",
+    "status",
+    "issued_by",
+    "issued_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.4.0"
+    },
+    "record_type": {
+      "const": "field-hazard-quarantine-record"
+    },
+    "quarantine_record_id": {
+      "type": "string",
+      "pattern": "^quarantine:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "field_id": {
+      "type": "string",
+      "pattern": "^field:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "residual_assessment_id": {
+      "type": "string",
+      "pattern": "^residual-assessment:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject_type",
+        "subject_id"
+      ],
+      "properties": {
+        "subject_type": {
+          "enum": [
+            "field-resource",
+            "shared-resource-envelope"
+          ]
+        },
+        "subject_id": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200
+        }
+      }
+    },
+    "trigger_classification": {
+      "const": "hazardous"
+    },
+    "containment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "access_blocked",
+        "reuse_blocked",
+        "propagation_blocked",
+        "active_lease_action",
+        "isolated_at"
+      ],
+      "properties": {
+        "access_blocked": {
+          "type": "boolean"
+        },
+        "reuse_blocked": {
+          "type": "boolean"
+        },
+        "propagation_blocked": {
+          "type": "boolean"
+        },
+        "active_lease_action": {
+          "enum": [
+            "revoke",
+            "suspend",
+            "none"
+          ]
+        },
+        "isolated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "release_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "review_authorization_required"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "human-review-only",
+            "reassessment-and-review",
+            "never"
+          ]
+        },
+        "review_authorization_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "status": {
+      "enum": [
+        "active",
+        "released",
+        "destroyed"
+      ]
+    },
+    "released_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "release_authorization_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200
+    },
+    "destruction_evidence_ref": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200
+    },
+    "issued_by": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
