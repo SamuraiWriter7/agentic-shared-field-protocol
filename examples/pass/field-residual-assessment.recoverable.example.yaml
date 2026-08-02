@@ -1,0 +1,22 @@
+schema_version: 0.4.0
+record_type: field-residual-assessment
+residual_assessment_id: residual-assessment:wind.derived-safety-pattern.001
+field_id: field:wind.shared-reasoning.v1
+subject:
+  source_type: circulation-return
+  field_resource_id: field-resource:wind.reasoning-residue.001
+  circulation_receipt_id: circulation-receipt:wind.reasoning-residue.001
+  envelope_id: envelope:wind.derived-safety-pattern.001
+  return_role: derivative
+anomaly_evidence_ids: []
+checks:
+  provenance: pass
+  integrity: pass
+  safety: pass
+  utility: pass
+  rights: pass
+classification: recoverable
+disposition: re-enter-through-boundary
+rationale: The derivative remains useful and safe for boundary re-entry.
+assessed_by: agent:field-residual-classifier.v1
+assessed_at: '2026-08-01T09:00:00+09:00'
