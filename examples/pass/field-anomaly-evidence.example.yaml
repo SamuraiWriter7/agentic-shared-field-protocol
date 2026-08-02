@@ -1,0 +1,21 @@
+schema_version: 0.4.0
+record_type: field-anomaly-evidence
+anomaly_evidence_id: anomaly-evidence:wind.reasoning-residue.integrity.001
+field_id: field:wind.shared-reasoning.v1
+subject:
+  subject_type: field-resource
+  subject_id: field-resource:wind.reasoning-residue.001
+evidence_type: integrity-mismatch
+severity: critical
+confidence: 0.98
+signals:
+- signal_type: digest-revalidation
+  value: mismatch
+  detector_ref: detector:field-integrity.v1
+- signal_type: embedded-instruction-pattern
+  value: true
+  detector_ref: detector:prompt-injection.v2
+status: confirmed
+observed_at: '2026-08-01T09:10:00+09:00'
+recorded_by: agent:field-immune-sentinel.v1
+recorded_at: '2026-08-01T09:11:00+09:00'
