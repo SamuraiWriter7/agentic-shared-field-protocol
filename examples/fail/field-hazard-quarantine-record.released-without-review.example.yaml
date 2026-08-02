@@ -1,0 +1,22 @@
+schema_version: 0.4.0
+record_type: field-hazard-quarantine-record
+quarantine_record_id: quarantine:wind.release-without-review.invalid
+field_id: field:wind.shared-reasoning.v1
+residual_assessment_id: residual-assessment:wind.reasoning-residue.hazard.001
+subject:
+  subject_type: field-resource
+  subject_id: field-resource:wind.reasoning-residue.001
+trigger_classification: hazardous
+containment:
+  access_blocked: true
+  reuse_blocked: true
+  propagation_blocked: true
+  active_lease_action: revoke
+  isolated_at: '2026-08-01T09:13:00+09:00'
+release_policy:
+  mode: human-review-only
+  review_authorization_required: true
+status: released
+issued_by: agent:field-immune-controller.v1
+issued_at: '2026-08-01T09:13:30+09:00'
+released_at: '2026-08-01T09:20:00+09:00'
