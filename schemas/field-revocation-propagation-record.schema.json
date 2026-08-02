@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kazene:agentic-shared-field-protocol:field-revocation-propagation-record:0.4.0",
+  "title": "Field Revocation Propagation Record",
+  "description": "Records downstream invalidation from a quarantined source.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_type",
+    "propagation_record_id",
+    "field_id",
+    "source",
+    "propagation_depth",
+    "targets",
+    "summary",
+    "status",
+    "issued_by",
+    "issued_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.4.0"
+    },
+    "record_type": {
+      "const": "field-revocation-propagation-record"
+    },
+    "propagation_record_id": {
+      "type": "string",
+      "pattern": "^revocation-propagation:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "field_id": {
+      "type": "string",
+      "pattern": "^field:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "quarantine_record_id",
+        "field_resource_id",
+        "reason",
+        "revoked_at"
+      ],
+      "properties": {
+        "quarantine_record_id": {
+          "type": "string",
+          "pattern": "^quarantine:[a-z0-9][a-z0-9._:-]{2,199}$"
+        },
+        "field_resource_id": {
+          "type": "string",
+          "pattern": "^field-resource:[a-z0-9][a-z0-9._:-]{2,199}$"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "revoked_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "propagation_depth": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "target_type",
+          "target_id",
+          "relationship",
+          "required_action",
+          "action_status"
+        ],
+        "properties": {
+          "target_type": {
+            "enum": [
+              "lease",
+              "shared-resource-envelope",
+              "contribution-request",
+              "field-resource"
+            ]
+          },
+          "target_id": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 200
+          },
+          "relationship": {
+            "enum": [
+              "active-lease",
+              "derivative",
+              "pending-return",
+              "cached-copy"
+            ]
+          },
+          "required_action": {
+            "enum": [
+              "revoke",
+              "quarantine",
+              "suspend",
+              "delete",
+              "tombstone"
+            ]
+          },
+          "action_status": {
+            "enum": [
+              "completed",
+              "pending",
+              "failed"
+            ]
+          },
+          "action_receipt_ref": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 200
+          },
+          "acted_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total",
+        "completed",
+        "pending",
+        "failed"
+      ],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "completed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pending": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "status": {
+      "enum": [
+        "in-progress",
+        "completed",
+        "failed"
+      ]
+    },
+    "issued_by": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
