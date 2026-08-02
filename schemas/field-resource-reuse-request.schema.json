@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:kazene:agentic-shared-field-protocol:field-resource-reuse-request:0.3.0",
+  "$id": "urn:kazene:agentic-shared-field-protocol:field-resource-reuse-request:0.4.0",
   "title": "Field Resource Reuse Request",
   "description": "Requests temporary, scoped use of an admitted field resource.",
   "type": "object",
@@ -21,7 +21,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "0.3.0"
+      "const": "0.4.0"
     },
     "record_type": {
       "const": "field-resource-reuse-request"
