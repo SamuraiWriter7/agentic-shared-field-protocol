@@ -22,4 +22,4 @@ record_type: field-resource-reuse-authorization
 requester_binding_id: binding:wind.derivative-worker.v1
 reuse_authorization_id: reuse-authz:wind.unrequested-scope.001
 reuse_request_id: reuse-request:wind.reasoning-residue.001
-schema_version: 0.3.0
+schema_version: 0.4.0
