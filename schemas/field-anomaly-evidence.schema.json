@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kazene:agentic-shared-field-protocol:field-anomaly-evidence:0.4.0",
+  "title": "Field Anomaly Evidence",
+  "description": "Records inspectable evidence of a field anomaly.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_type",
+    "anomaly_evidence_id",
+    "field_id",
+    "subject",
+    "evidence_type",
+    "severity",
+    "confidence",
+    "signals",
+    "status",
+    "observed_at",
+    "recorded_by",
+    "recorded_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.4.0"
+    },
+    "record_type": {
+      "const": "field-anomaly-evidence"
+    },
+    "anomaly_evidence_id": {
+      "type": "string",
+      "pattern": "^anomaly-evidence:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "field_id": {
+      "type": "string",
+      "pattern": "^field:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject_type",
+        "subject_id"
+      ],
+      "properties": {
+        "subject_type": {
+          "enum": [
+            "field-resource",
+            "shared-resource-envelope",
+            "lease",
+            "circulation-receipt"
+          ]
+        },
+        "subject_id": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200
+        }
+      }
+    },
+    "evidence_type": {
+      "enum": [
+        "provenance-conflict",
+        "integrity-mismatch",
+        "policy-violation",
+        "malicious-payload",
+        "behavioral-anomaly",
+        "stale-dependency"
+      ]
+    },
+    "severity": {
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "signals": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "signal_type",
+          "value",
+          "detector_ref"
+        ],
+        "properties": {
+          "signal_type": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "value": {
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          },
+          "detector_ref": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 200
+          }
+        }
+      }
+    },
+    "status": {
+      "enum": [
+        "open",
+        "confirmed",
+        "dismissed"
+      ]
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "recorded_by": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
