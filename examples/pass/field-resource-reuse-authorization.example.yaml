@@ -1,4 +1,4 @@
-schema_version: 0.3.0
+schema_version: 0.4.0
 record_type: field-resource-reuse-authorization
 reuse_authorization_id: reuse-authz:wind.reasoning-residue.001
 reuse_request_id: reuse-request:wind.reasoning-residue.001
