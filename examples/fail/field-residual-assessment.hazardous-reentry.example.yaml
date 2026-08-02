@@ -1,0 +1,20 @@
+schema_version: 0.4.0
+record_type: field-residual-assessment
+residual_assessment_id: residual-assessment:wind.hazardous-reentry.invalid
+field_id: field:wind.shared-reasoning.v1
+subject:
+  source_type: field-resource
+  field_resource_id: field-resource:wind.reasoning-residue.001
+anomaly_evidence_ids:
+- anomaly-evidence:wind.reasoning-residue.integrity.001
+checks:
+  provenance: pass
+  integrity: fail
+  safety: fail
+  utility: unknown
+  rights: pass
+classification: hazardous
+disposition: re-enter-through-boundary
+rationale: Confirmed integrity mismatch may contaminate downstream reasoning.
+assessed_by: agent:field-residual-classifier.v1
+assessed_at: '2026-08-01T09:12:00+09:00'
