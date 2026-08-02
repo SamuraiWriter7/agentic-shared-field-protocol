@@ -14,5 +14,5 @@ requested_scopes:
 - commercialize
 requester_binding_id: binding:wind.derivative-worker.v1
 reuse_request_id: reuse-request:wind.scope-escalation.001
-schema_version: 0.3.0
+schema_version: 0.4.0
 status: pending
