@@ -1,4 +1,4 @@
-schema_version: 0.3.0
+schema_version: 0.4.0
 record_type: field-circulation-receipt
 circulation_receipt_id: circulation-receipt:wind.reasoning-residue.001
 lease_id: lease:wind.reasoning-residue.001
