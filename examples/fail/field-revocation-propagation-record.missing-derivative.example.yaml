@@ -1,0 +1,26 @@
+schema_version: 0.4.0
+record_type: field-revocation-propagation-record
+propagation_record_id: revocation-propagation:wind.missing-derivative.invalid
+field_id: field:wind.shared-reasoning.v1
+source:
+  quarantine_record_id: quarantine:wind.reasoning-residue.hazard.001
+  field_resource_id: field-resource:wind.reasoning-residue.001
+  reason: Confirmed hazard requires downstream invalidation.
+  revoked_at: '2026-08-01T09:14:00+09:00'
+propagation_depth: 1
+targets:
+- target_type: lease
+  target_id: lease:wind.reasoning-residue.001
+  relationship: active-lease
+  required_action: revoke
+  action_status: completed
+  action_receipt_ref: action-receipt:lease-revocation.001
+  acted_at: '2026-08-01T09:14:10+09:00'
+summary:
+  total: 1
+  completed: 1
+  pending: 0
+  failed: 0
+status: completed
+issued_by: agent:field-revocation-controller.v1
+issued_at: '2026-08-01T09:15:00+09:00'
