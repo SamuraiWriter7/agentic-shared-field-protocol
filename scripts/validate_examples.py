@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate Agentic Shared Field Protocol v0.3 examples."""
+"""Validate Agentic Shared Field Protocol v0.4 examples."""
 
 from __future__ import annotations
 
@@ -39,6 +39,10 @@ SCHEMA_FILES = {
     / "field-resource-lease.schema.json",
     "field-circulation-receipt": SCHEMA_DIR
     / "field-circulation-receipt.schema.json",
+    "field-anomaly-evidence": SCHEMA_DIR / "field-anomaly-evidence.schema.json",
+    "field-residual-assessment": SCHEMA_DIR / "field-residual-assessment.schema.json",
+    "field-hazard-quarantine-record": SCHEMA_DIR / "field-hazard-quarantine-record.schema.json",
+    "field-revocation-propagation-record": SCHEMA_DIR / "field-revocation-propagation-record.schema.json",
 }
 
 TYPE_ORDER = [
@@ -52,6 +56,10 @@ TYPE_ORDER = [
     "field-resource-reuse-authorization",
     "field-resource-lease",
     "field-circulation-receipt",
+    "field-anomaly-evidence",
+    "field-residual-assessment",
+    "field-hazard-quarantine-record",
+    "field-revocation-propagation-record",
 ]
 
 ID_FIELDS = {
@@ -65,6 +73,10 @@ ID_FIELDS = {
     "field-resource-reuse-authorization": "reuse_authorization_id",
     "field-resource-lease": "lease_id",
     "field-circulation-receipt": "circulation_receipt_id",
+    "field-anomaly-evidence": "anomaly_evidence_id",
+    "field-residual-assessment": "residual_assessment_id",
+    "field-hazard-quarantine-record": "quarantine_record_id",
+    "field-revocation-propagation-record": "propagation_record_id",
 }
 
 PARTICIPANT_PREFIXES = {
@@ -284,6 +296,61 @@ def validate_shared_field_profile(
         errors.append(
             "reuse_policy: derived resource return requires circulation "
             "receipts"
+        )
+
+    immune = document["immune_policy"]
+    accepted_residuals = set(immune["accepted_residual_classifications"])
+    required_residuals = {"recoverable", "dormant", "hazardous", "exhausted"}
+    if accepted_residuals != required_residuals:
+        errors.append(
+            "immune_policy.accepted_residual_classifications: "
+            "must contain all four residual classes exactly"
+        )
+    quarantine_classes = set(immune["quarantine_classifications"])
+    if "hazardous" not in quarantine_classes:
+        errors.append(
+            "immune_policy.quarantine_classifications: hazardous is required"
+        )
+    if not quarantine_classes <= rejected:
+        errors.append(
+            "immune_policy.quarantine_classifications: must also be rejected "
+            "by inbound permeability"
+        )
+    evidence_classes = set(immune["anomaly_evidence_required_for"])
+    if not evidence_classes <= quarantine_classes:
+        errors.append(
+            "immune_policy.anomaly_evidence_required_for: must be a subset "
+            "of quarantine classifications"
+        )
+    if quarantine_classes and not contribution["quarantine_supported"]:
+        errors.append(
+            "immune_policy: quarantine requires contribution quarantine support"
+        )
+    if (
+        immune["revocation_propagation_required"]
+        and not document["permeability_policy"]["outbound"][
+            "revocation_propagation_required"
+        ]
+    ):
+        errors.append(
+            "immune_policy.revocation_propagation_required: outbound policy "
+            "must also require propagation"
+        )
+    if (
+        immune["require_known_derivative_coverage"]
+        and not immune["revocation_propagation_required"]
+    ):
+        errors.append(
+            "immune_policy.require_known_derivative_coverage: requires "
+            "revocation propagation"
+        )
+    if (
+        immune["exhausted_action"] in {"tombstone", "delete-after-tombstone"}
+        and not document["retention_policy"]["tombstone_required"]
+    ):
+        errors.append(
+            "immune_policy.exhausted_action: tombstone action requires "
+            "retention_policy.tombstone_required"
         )
 
     retention = document["retention_policy"]
@@ -1767,6 +1834,541 @@ def validate_field_circulation_receipt(
 
     return errors
 
+
+def resolve_immune_subject(
+    registry: Registry,
+    field_id: str,
+    subject_type: str,
+    subject_id: str,
+) -> tuple[dict[str, Any] | None, list[str]]:
+    errors: list[str] = []
+    record: dict[str, Any] | None = None
+
+    if subject_type == "field-resource":
+        record = find_field_resource_receipt(registry, subject_id)
+    elif subject_type == "shared-resource-envelope":
+        record = registry["shared-resource-envelope"].get(subject_id)
+    elif subject_type == "lease":
+        record = registry["field-resource-lease"].get(subject_id)
+    elif subject_type == "circulation-receipt":
+        record = registry["field-circulation-receipt"].get(subject_id)
+
+    if record is None:
+        errors.append(
+            f"subject.subject_id: unknown {subject_type} {subject_id!r}"
+        )
+    elif record.get("field_id") != field_id:
+        errors.append(
+            "subject.subject_id: subject belongs to a different field"
+        )
+
+    return record, errors
+
+
+def validate_field_anomaly_evidence(
+    document: dict[str, Any],
+    registry: Registry,
+) -> list[str]:
+    errors: list[str] = []
+    field, lookup_errors = get_record(
+        registry,
+        "shared-field-profile",
+        document["field_id"],
+        "field_id",
+    )
+    errors.extend(lookup_errors)
+    if field is None:
+        return errors
+
+    _, subject_errors = resolve_immune_subject(
+        registry,
+        document["field_id"],
+        document["subject"]["subject_type"],
+        document["subject"]["subject_id"],
+    )
+    errors.extend(subject_errors)
+
+    observed_at = parse_datetime(document["observed_at"])
+    recorded_at = parse_datetime(document["recorded_at"])
+    if recorded_at < observed_at:
+        errors.append("recorded_at: must not be earlier than observed_at")
+
+    if (
+        document["status"] == "confirmed"
+        and document["severity"] in {"high", "critical"}
+        and document["confidence"] < 0.7
+    ):
+        errors.append(
+            "confidence: confirmed high or critical evidence requires "
+            "confidence >= 0.7"
+        )
+
+    return errors
+
+
+def validate_field_residual_assessment(
+    document: dict[str, Any],
+    registry: Registry,
+) -> list[str]:
+    errors: list[str] = []
+    field, lookup_errors = get_record(
+        registry,
+        "shared-field-profile",
+        document["field_id"],
+        "field_id",
+    )
+    errors.extend(lookup_errors)
+    if field is None:
+        return errors
+
+    subject = document["subject"]
+    receipt = find_field_resource_receipt(
+        registry,
+        subject["field_resource_id"],
+    )
+    if receipt is None:
+        errors.append(
+            "subject.field_resource_id: unknown admitted field resource"
+        )
+    elif receipt["field_id"] != document["field_id"]:
+        errors.append(
+            "subject.field_resource_id: resource belongs to another field"
+        )
+
+    if subject["source_type"] == "circulation-return":
+        required = (
+            "circulation_receipt_id",
+            "envelope_id",
+            "return_role",
+        )
+        for key in required:
+            if key not in subject:
+                errors.append(
+                    f"subject.{key}: required for circulation-return"
+                )
+
+        if all(key in subject for key in required):
+            circulation = registry["field-circulation-receipt"].get(
+                subject["circulation_receipt_id"]
+            )
+            if circulation is None:
+                errors.append(
+                    "subject.circulation_receipt_id: unknown circulation receipt"
+                )
+            else:
+                if circulation["field_id"] != document["field_id"]:
+                    errors.append(
+                        "subject.circulation_receipt_id: receipt belongs "
+                        "to another field"
+                    )
+                if circulation["field_resource_id"] != subject[
+                    "field_resource_id"
+                ]:
+                    errors.append(
+                        "subject.field_resource_id: does not match "
+                        "circulation receipt"
+                    )
+                matched = any(
+                    item["envelope_id"] == subject["envelope_id"]
+                    and item["return_role"] == subject["return_role"]
+                    for item in circulation["return_records"]
+                )
+                if not matched:
+                    errors.append(
+                        "subject.envelope_id: not found with declared "
+                        "return_role in circulation receipt"
+                    )
+    else:
+        for key in (
+            "circulation_receipt_id",
+            "envelope_id",
+            "return_role",
+        ):
+            if key in subject:
+                errors.append(
+                    f"subject.{key}: forbidden for field-resource source"
+                )
+
+    evidence_records: list[dict[str, Any]] = []
+    assessed_at = parse_datetime(document["assessed_at"])
+    for evidence_id in document["anomaly_evidence_ids"]:
+        evidence = registry["field-anomaly-evidence"].get(evidence_id)
+        if evidence is None:
+            errors.append(
+                f"anomaly_evidence_ids: unknown evidence {evidence_id!r}"
+            )
+            continue
+        evidence_records.append(evidence)
+        if parse_datetime(evidence["observed_at"]) > assessed_at:
+            errors.append(
+                "anomaly_evidence_ids: evidence was observed after assessment"
+            )
+
+    classification = document["classification"]
+    expected_dispositions = {
+        "recoverable": "re-enter-through-boundary",
+        "dormant": "hold-dormant",
+        "hazardous": "quarantine-and-revoke",
+        "exhausted": "tombstone",
+    }
+    expected = expected_dispositions[classification]
+    if document["disposition"] != expected:
+        errors.append(
+            f"disposition: must be {expected!r} for classification "
+            f"{classification!r}"
+        )
+
+    checks = document["checks"]
+    if classification == "recoverable":
+        if (
+            checks["utility"] != "pass"
+            or checks["safety"] == "fail"
+            or checks["integrity"] == "fail"
+        ):
+            errors.append(
+                "checks: recoverable requires utility pass without "
+                "safety or integrity failure"
+            )
+
+    if classification == "hazardous":
+        if checks["safety"] != "fail" and checks["integrity"] != "fail":
+            errors.append(
+                "checks: hazardous requires safety or integrity failure"
+            )
+        if "hazardous" in field["immune_policy"][
+            "anomaly_evidence_required_for"
+        ]:
+            confirmed = [
+                item
+                for item in evidence_records
+                if item["status"] == "confirmed"
+                and item["severity"] in {"high", "critical"}
+            ]
+            if not confirmed:
+                errors.append(
+                    "anomaly_evidence_ids: hazardous classification "
+                    "requires confirmed high or critical evidence"
+                )
+
+    if classification == "dormant":
+        due_raw = document.get("reassessment_due_at")
+        if due_raw is None:
+            errors.append(
+                "reassessment_due_at: required for dormant classification"
+            )
+        elif parse_datetime(due_raw) <= assessed_at:
+            errors.append(
+                "reassessment_due_at: must be later than assessed_at"
+            )
+    elif "reassessment_due_at" in document:
+        errors.append(
+            "reassessment_due_at: allowed only for dormant classification"
+        )
+
+    if classification == "exhausted" and checks["utility"] != "fail":
+        errors.append(
+            "checks.utility: exhausted classification requires fail"
+        )
+
+    return errors
+
+
+def validate_field_hazard_quarantine_record(
+    document: dict[str, Any],
+    registry: Registry,
+) -> list[str]:
+    errors: list[str] = []
+    field, field_errors = get_record(
+        registry,
+        "shared-field-profile",
+        document["field_id"],
+        "field_id",
+    )
+    assessment, assessment_errors = get_record(
+        registry,
+        "field-residual-assessment",
+        document["residual_assessment_id"],
+        "residual_assessment_id",
+    )
+    errors.extend(field_errors)
+    errors.extend(assessment_errors)
+    if field is None or assessment is None:
+        return errors
+
+    if assessment["field_id"] != document["field_id"]:
+        errors.append(
+            "residual_assessment_id: assessment belongs to another field"
+        )
+    if (
+        assessment["classification"] != "hazardous"
+        or assessment["disposition"] != "quarantine-and-revoke"
+    ):
+        errors.append(
+            "residual_assessment_id: quarantine requires a hazardous "
+            "quarantine-and-revoke assessment"
+        )
+
+    if assessment["subject"]["source_type"] == "field-resource":
+        expected_type = "field-resource"
+        expected_id = assessment["subject"]["field_resource_id"]
+    else:
+        expected_type = "shared-resource-envelope"
+        expected_id = assessment["subject"].get("envelope_id")
+
+    if (
+        document["subject"]["subject_type"] != expected_type
+        or document["subject"]["subject_id"] != expected_id
+    ):
+        errors.append("subject: does not match residual assessment subject")
+
+    containment = document["containment"]
+    if not all(
+        containment[key]
+        for key in (
+            "access_blocked",
+            "reuse_blocked",
+            "propagation_blocked",
+        )
+    ):
+        errors.append(
+            "containment: quarantine must block access, reuse, and propagation"
+        )
+
+    if (
+        document["subject"]["subject_type"] == "field-resource"
+        and containment["active_lease_action"] == "none"
+    ):
+        leases = [
+            lease
+            for lease in registry["field-resource-lease"].values()
+            if lease["field_resource_id"]
+            == document["subject"]["subject_id"]
+        ]
+        if leases:
+            errors.append(
+                "containment.active_lease_action: field resource with leases "
+                "cannot use none"
+            )
+
+    if document["release_policy"]["mode"] != field["immune_policy"][
+        "quarantine_release_mode"
+    ]:
+        errors.append(
+            "release_policy.mode: does not match field immune policy"
+        )
+
+    status = document["status"]
+    if status == "released":
+        if "released_at" not in document:
+            errors.append("released_at: required when status is released")
+        if (
+            document["release_policy"]["review_authorization_required"]
+            and not document.get("release_authorization_id")
+        ):
+            errors.append(
+                "release_authorization_id: required for quarantine release"
+            )
+    elif (
+        "released_at" in document
+        or "release_authorization_id" in document
+    ):
+        errors.append(
+            "release fields: allowed only when status is released"
+        )
+
+    if (
+        status == "destroyed"
+        and not document.get("destruction_evidence_ref")
+    ):
+        errors.append(
+            "destruction_evidence_ref: required when status is destroyed"
+        )
+
+    if parse_datetime(document["issued_at"]) < parse_datetime(
+        containment["isolated_at"]
+    ):
+        errors.append(
+            "issued_at: must not be earlier than containment.isolated_at"
+        )
+
+    return errors
+
+
+def validate_field_revocation_propagation_record(
+    document: dict[str, Any],
+    registry: Registry,
+) -> list[str]:
+    errors: list[str] = []
+    field, field_errors = get_record(
+        registry,
+        "shared-field-profile",
+        document["field_id"],
+        "field_id",
+    )
+    quarantine, quarantine_errors = get_record(
+        registry,
+        "field-hazard-quarantine-record",
+        document["source"]["quarantine_record_id"],
+        "source.quarantine_record_id",
+    )
+    errors.extend(field_errors)
+    errors.extend(quarantine_errors)
+    if field is None or quarantine is None:
+        return errors
+
+    source_id = document["source"]["field_resource_id"]
+    if quarantine["field_id"] != document["field_id"]:
+        errors.append(
+            "source.quarantine_record_id: quarantine belongs to another field"
+        )
+    if (
+        quarantine["subject"]["subject_type"] != "field-resource"
+        or quarantine["subject"]["subject_id"] != source_id
+    ):
+        errors.append(
+            "source.field_resource_id: does not match quarantined resource"
+        )
+
+    if document["propagation_depth"] > field["immune_policy"][
+        "max_propagation_depth"
+    ]:
+        errors.append(
+            "propagation_depth: exceeds field immune policy"
+        )
+
+    revoked_at = parse_datetime(document["source"]["revoked_at"])
+    counts = {"completed": 0, "pending": 0, "failed": 0}
+    target_pairs: set[tuple[str, str]] = set()
+
+    for index, target in enumerate(document["targets"]):
+        prefix = f"targets.{index}"
+        pair = (target["target_type"], target["target_id"])
+        if pair in target_pairs:
+            errors.append(f"{prefix}: duplicate target")
+        target_pairs.add(pair)
+
+        target_type = target["target_type"]
+        target_id = target["target_id"]
+        record: dict[str, Any] | None = None
+        if target_type == "lease":
+            record = registry["field-resource-lease"].get(target_id)
+        elif target_type == "shared-resource-envelope":
+            record = registry["shared-resource-envelope"].get(target_id)
+        elif target_type == "contribution-request":
+            record = registry["field-contribution-request"].get(target_id)
+        elif target_type == "field-resource":
+            record = find_field_resource_receipt(registry, target_id)
+
+        if record is None:
+            errors.append(f"{prefix}.target_id: unknown target")
+            continue
+
+        relationship = target["relationship"]
+        if relationship == "active-lease":
+            if (
+                target_type != "lease"
+                or record["field_resource_id"] != source_id
+            ):
+                errors.append(
+                    f"{prefix}: active-lease target does not lease source"
+                )
+        elif relationship == "derivative":
+            if (
+                target_type != "shared-resource-envelope"
+                or source_id not in record["origin"]["derivative_of"]
+            ):
+                errors.append(
+                    f"{prefix}: derivative target does not derive from source"
+                )
+        elif relationship == "pending-return":
+            if target_type != "contribution-request":
+                errors.append(
+                    f"{prefix}: pending-return must target a contribution request"
+                )
+            else:
+                envelope = registry["shared-resource-envelope"].get(
+                    record["envelope_id"]
+                )
+                if (
+                    envelope is None
+                    or source_id not in envelope["origin"]["derivative_of"]
+                ):
+                    errors.append(
+                        f"{prefix}: pending return is not derived from source"
+                    )
+
+        action_status = target["action_status"]
+        counts[action_status] += 1
+        if action_status == "completed":
+            if (
+                not target.get("action_receipt_ref")
+                or not target.get("acted_at")
+            ):
+                errors.append(
+                    f"{prefix}: completed action requires receipt and acted_at"
+                )
+            elif parse_datetime(target["acted_at"]) < revoked_at:
+                errors.append(
+                    f"{prefix}.acted_at: must not precede revoked_at"
+                )
+        elif (
+            target.get("action_receipt_ref")
+            or target.get("acted_at")
+        ):
+            errors.append(
+                f"{prefix}: incomplete action must not claim completion evidence"
+            )
+
+    summary = document["summary"]
+    if summary["total"] != len(document["targets"]):
+        errors.append("summary.total: does not match targets")
+    for key, value in counts.items():
+        if summary[key] != value:
+            errors.append(
+                f"summary.{key}: does not match target states"
+            )
+
+    if (
+        document["status"] == "completed"
+        and counts["pending"] + counts["failed"] > 0
+    ):
+        errors.append(
+            "status: completed propagation cannot contain pending or failed targets"
+        )
+    if document["status"] == "in-progress" and counts["pending"] == 0:
+        errors.append(
+            "status: in-progress propagation requires a pending target"
+        )
+    if document["status"] == "failed" and counts["failed"] == 0:
+        errors.append(
+            "status: failed propagation requires a failed target"
+        )
+
+    if field["immune_policy"]["require_known_derivative_coverage"]:
+        known_derivatives = {
+            envelope["envelope_id"]
+            for envelope in registry["shared-resource-envelope"].values()
+            if source_id in envelope["origin"]["derivative_of"]
+        }
+        covered_derivatives = {
+            target["target_id"]
+            for target in document["targets"]
+            if target["target_type"] == "shared-resource-envelope"
+            and target["relationship"] == "derivative"
+        }
+        missing = sorted(known_derivatives - covered_derivatives)
+        if missing:
+            errors.append(
+                f"targets: missing known derivative coverage: {missing}"
+            )
+
+    if parse_datetime(document["issued_at"]) < revoked_at:
+        errors.append(
+            "issued_at: must not be earlier than source.revoked_at"
+        )
+
+    return errors
+
 SEMANTIC_VALIDATORS: dict[
     str,
     Callable[[dict[str, Any], Registry], list[str]],
@@ -1783,6 +2385,10 @@ SEMANTIC_VALIDATORS: dict[
     ),
     "field-resource-lease": validate_field_resource_lease,
     "field-circulation-receipt": validate_field_circulation_receipt,
+    "field-anomaly-evidence": validate_field_anomaly_evidence,
+    "field-residual-assessment": validate_field_residual_assessment,
+    "field-hazard-quarantine-record": validate_field_hazard_quarantine_record,
+    "field-revocation-propagation-record": validate_field_revocation_propagation_record,
 }
 
 
@@ -1918,7 +2524,7 @@ def validate_expected_fail(
 
 
 def main() -> int:
-    print("=== Agentic Shared Field Protocol v0.3 Validation ===")
+    print("=== Agentic Shared Field Protocol v0.4 Validation ===")
 
     schemas = {
         record_type: load_json(path)
@@ -1990,3 +2596,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+
