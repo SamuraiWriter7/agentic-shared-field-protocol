@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kazene:agentic-shared-field-protocol:field-residual-assessment:0.4.0",
+  "title": "Field Residual Assessment",
+  "description": "Classifies a field resource or circulation return.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_type",
+    "residual_assessment_id",
+    "field_id",
+    "subject",
+    "anomaly_evidence_ids",
+    "checks",
+    "classification",
+    "disposition",
+    "rationale",
+    "assessed_by",
+    "assessed_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.4.0"
+    },
+    "record_type": {
+      "const": "field-residual-assessment"
+    },
+    "residual_assessment_id": {
+      "type": "string",
+      "pattern": "^residual-assessment:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "field_id": {
+      "type": "string",
+      "pattern": "^field:[a-z0-9][a-z0-9._:-]{2,199}$"
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_type",
+        "field_resource_id"
+      ],
+      "properties": {
+        "source_type": {
+          "enum": [
+            "field-resource",
+            "circulation-return"
+          ]
+        },
+        "field_resource_id": {
+          "type": "string",
+          "pattern": "^field-resource:[a-z0-9][a-z0-9._:-]{2,199}$"
+        },
+        "circulation_receipt_id": {
+          "type": "string",
+          "pattern": "^circulation-receipt:[a-z0-9][a-z0-9._:-]{2,199}$"
+        },
+        "envelope_id": {
+          "type": "string",
+          "pattern": "^envelope:[a-z0-9][a-z0-9._:-]{2,199}$"
+        },
+        "return_role": {
+          "enum": [
+            "derivative",
+            "residual",
+            "failure-evidence"
+          ]
+        }
+      }
+    },
+    "anomaly_evidence_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^anomaly-evidence:[a-z0-9][a-z0-9._:-]{2,199}$"
+      }
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provenance",
+        "integrity",
+        "safety",
+        "utility",
+        "rights"
+      ],
+      "properties": {
+        "provenance": {
+          "enum": [
+            "pass",
+            "fail",
+            "unknown"
+          ]
+        },
+        "integrity": {
+          "enum": [
+            "pass",
+            "fail",
+            "unknown"
+          ]
+        },
+        "safety": {
+          "enum": [
+            "pass",
+            "fail",
+            "unknown"
+          ]
+        },
+        "utility": {
+          "enum": [
+            "pass",
+            "fail",
+            "unknown"
+          ]
+        },
+        "rights": {
+          "enum": [
+            "pass",
+            "fail",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "classification": {
+      "enum": [
+        "recoverable",
+        "dormant",
+        "hazardous",
+        "exhausted"
+      ]
+    },
+    "disposition": {
+      "enum": [
+        "re-enter-through-boundary",
+        "hold-dormant",
+        "quarantine-and-revoke",
+        "tombstone"
+      ]
+    },
+    "reassessment_due_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "assessed_by": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160
+    },
+    "assessed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
