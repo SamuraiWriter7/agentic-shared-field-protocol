@@ -2972,6 +2972,15 @@ def validate_expected_fail(
 def main() -> int:
     print("=== Agentic Shared Field Protocol v0.5 Validation ===")
 
+    missing_schema_paths = [
+        path for path in SCHEMA_FILES.values() if not path.is_file()
+    ]
+    if missing_schema_paths:
+        print("[fatal] missing schema files:")
+        for path in missing_schema_paths:
+            print(f"  - {path.relative_to(ROOT)}")
+        return 1
+
     schemas = {
         record_type: load_json(path)
         for record_type, path in SCHEMA_FILES.items()
