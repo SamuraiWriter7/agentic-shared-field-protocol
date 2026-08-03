@@ -1,4 +1,4 @@
-schema_version: 0.4.0
+schema_version: 0.5.0
 record_type: field-revocation-propagation-record
 propagation_record_id: revocation-propagation:wind.reasoning-residue.001
 field_id: field:wind.shared-reasoning.v1
