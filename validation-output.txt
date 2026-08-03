@@ -1,12 +1,58 @@
-=== Agentic Shared Field Protocol v0.2 Validation ===
+=== Agentic Shared Field Protocol v0.5 Validation ===
+[schema-meta-ok]
+[yaml-load-ok]
+
 schema [shared-field-profile]: schemas/shared-field-profile.schema.json
 schema [field-participant-binding]: schemas/field-participant-binding.schema.json
 schema [shared-resource-envelope]: schemas/shared-resource-envelope.schema.json
 schema [field-contribution-request]: schemas/field-contribution-request.schema.json
 schema [field-contribution-assessment]: schemas/field-contribution-assessment.schema.json
 schema [field-contribution-receipt]: schemas/field-contribution-receipt.schema.json
+schema [field-resource-reuse-request]: schemas/field-resource-reuse-request.schema.json
+schema [field-resource-reuse-authorization]: schemas/field-resource-reuse-authorization.schema.json
+schema [field-resource-lease]: schemas/field-resource-lease.schema.json
+schema [field-circulation-receipt]: schemas/field-circulation-receipt.schema.json
+schema [field-anomaly-evidence]: schemas/field-anomaly-evidence.schema.json
+schema [field-residual-assessment]: schemas/field-residual-assessment.schema.json
+schema [field-hazard-quarantine-record]: schemas/field-hazard-quarantine-record.schema.json
+schema [field-revocation-propagation-record]: schemas/field-revocation-propagation-record.schema.json
+schema [field-federation-profile]: schemas/field-federation-profile.schema.json
+schema [field-federation-admission-record]: schemas/field-federation-admission-record.schema.json
+schema [field-policy-negotiation-record]: schemas/field-policy-negotiation-record.schema.json
+schema [cross-field-route-authorization]: schemas/cross-field-route-authorization.schema.json
+schema [cross-field-circulation-receipt]: schemas/cross-field-circulation-receipt.schema.json
+schema [multi-field-royalty-settlement-record]: schemas/multi-field-royalty-settlement-record.schema.json
+schema [federation-circulation-health-report]: schemas/federation-circulation-health-report.schema.json
+
+[validate-pass] examples/pass/cross-field-circulation-receipt.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/cross-field-route-authorization.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/federation-circulation-health-report.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-anomaly-evidence.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-circulation-receipt.example.yaml
+[schema-ok]
+[semantic-ok]
 
 [validate-pass] examples/pass/field-contribution-assessment.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-contribution-assessment.federated-transfer.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-contribution-assessment.federation-source.example.yaml
 [schema-ok]
 [semantic-ok]
 
@@ -18,7 +64,19 @@ schema [field-contribution-receipt]: schemas/field-contribution-receipt.schema.j
 [schema-ok]
 [semantic-ok]
 
+[validate-pass] examples/pass/field-contribution-receipt.federated-transfer.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-contribution-receipt.federation-source.example.yaml
+[schema-ok]
+[semantic-ok]
+
 [validate-pass] examples/pass/field-contribution-receipt.quarantine.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-contribution-request.derivative-return.example.yaml
 [schema-ok]
 [semantic-ok]
 
@@ -26,7 +84,31 @@ schema [field-contribution-receipt]: schemas/field-contribution-receipt.schema.j
 [schema-ok]
 [semantic-ok]
 
+[validate-pass] examples/pass/field-contribution-request.federated-transfer.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-contribution-request.federation-source.example.yaml
+[schema-ok]
+[semantic-ok]
+
 [validate-pass] examples/pass/field-contribution-request.hazardous.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-federation-admission-record.source.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-federation-admission-record.target.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-federation-profile.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-hazard-quarantine-record.example.yaml
 [schema-ok]
 [semantic-ok]
 
@@ -34,7 +116,15 @@ schema [field-contribution-receipt]: schemas/field-contribution-receipt.schema.j
 [schema-ok]
 [semantic-ok]
 
+[validate-pass] examples/pass/field-participant-binding.derivative-worker.example.yaml
+[schema-ok]
+[semantic-ok]
+
 [validate-pass] examples/pass/field-participant-binding.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-participant-binding.federation-bridge.example.yaml
 [schema-ok]
 [semantic-ok]
 
@@ -42,7 +132,47 @@ schema [field-contribution-receipt]: schemas/field-contribution-receipt.schema.j
 [schema-ok]
 [semantic-ok]
 
+[validate-pass] examples/pass/field-policy-negotiation-record.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-residual-assessment.hazardous.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-residual-assessment.recoverable.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-resource-lease.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-resource-reuse-authorization.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-resource-reuse-request.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/field-revocation-propagation-record.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/multi-field-royalty-settlement-record.example.yaml
+[schema-ok]
+[semantic-ok]
+
 [validate-pass] examples/pass/shared-field-profile.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/shared-field-profile.safety.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/shared-resource-envelope.derivative-return.example.yaml
 [schema-ok]
 [semantic-ok]
 
@@ -50,9 +180,48 @@ schema [field-contribution-receipt]: schemas/field-contribution-receipt.schema.j
 [schema-ok]
 [semantic-ok]
 
+[validate-pass] examples/pass/shared-resource-envelope.federated-transfer.example.yaml
+[schema-ok]
+[semantic-ok]
+
+[validate-pass] examples/pass/shared-resource-envelope.federation-source.example.yaml
+[schema-ok]
+[semantic-ok]
+
 [validate-pass] examples/pass/shared-resource-envelope.hazardous.example.yaml
 [schema-ok]
 [semantic-ok]
+
+[validate-fail] examples/fail/cross-field-circulation-receipt.target-outcome-mismatch.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - outcome: does not match target contribution receipt
+
+[validate-fail] examples/fail/cross-field-route-authorization.exceeds-negotiated-lease.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - max_lease_seconds: exceeds negotiated lease
+
+[validate-fail] examples/fail/federation-circulation-health-report.false-healthy.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - threshold_breaches: expected ['FAILED_ROUTE_RATE']
+  - status: expected 'degraded' from threshold breaches
+
+[validate-fail] examples/fail/field-circulation-receipt.after-lease-expiry.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - usage.ended_at: use continued after lease expiry
+
+[validate-fail] examples/fail/field-circulation-receipt.missing-derivative-trace.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - obligations.derivative_trace_ids: required for derivative use
+
+[validate-fail] examples/fail/field-circulation-receipt.missing-return.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - return_records: derivative use must return a resource or failure record
 
 [validate-fail] examples/fail/field-contribution-assessment.accept-with-failed-audit.example.yaml
 [schema-ok]
@@ -77,6 +246,69 @@ schema [field-contribution-receipt]: schemas/field-contribution-receipt.schema.j
 [schema-ok]
 [expected-semantic-error]
   - requested_access_scopes: scopes exceed envelope rights: ['commercialize']
+
+[validate-fail] examples/fail/field-federation-admission-record.below-quorum.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - approvals: admitted field does not satisfy federation quorum
+
+[validate-fail] examples/fail/field-federation-profile.impossible-shares.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - settlement_policy: minimum and common-pool shares exceed 1.0
+
+[validate-fail] examples/fail/field-hazard-quarantine-record.nonhazardous-trigger.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - residual_assessment_id: quarantine requires a hazardous quarantine-and-revoke assessment
+
+[validate-fail] examples/fail/field-hazard-quarantine-record.released-without-review.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - release_authorization_id: required for quarantine release
+
+[validate-fail] examples/fail/field-policy-negotiation-record.scope-outside-intersection.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - requested_scopes: outside policy intersection: ['commercialize']
+
+[validate-fail] examples/fail/field-residual-assessment.hazardous-reentry.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - disposition: must be 'quarantine-and-revoke' for classification 'hazardous'
+
+[validate-fail] examples/fail/field-resource-lease.exceeds-authorized-duration.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - expires_at: must equal starts_at plus authorized lease_seconds
+
+[validate-fail] examples/fail/field-resource-reuse-authorization.grants-unrequested-scope.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - granted_scopes: scopes were not requested: ['redistribute']
+  - granted_scopes: scopes exceed requester binding: ['redistribute']
+
+[validate-fail] examples/fail/field-resource-reuse-request.scope-exceeds-rights.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - requested_scopes: scopes exceed field reuse policy: ['commercialize']
+  - requested_scopes: scopes exceed requester binding: ['commercialize']
+  - requested_scopes: scopes exceed resource rights: ['commercialize']
+
+[validate-fail] examples/fail/field-revocation-propagation-record.completed-with-pending-target.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - status: completed propagation cannot contain pending or failed targets
+
+[validate-fail] examples/fail/field-revocation-propagation-record.missing-derivative.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - targets: missing known derivative coverage: ['envelope:wind.derived-safety-pattern.001']
+
+[validate-fail] examples/fail/multi-field-royalty-settlement-record.allocation-mismatch.example.yaml
+[schema-ok]
+[expected-semantic-error]
+  - total_allocated: does not equal allocation sum
 
 [validate-fail] examples/fail/shared-resource-envelope.oversized.example.yaml
 [schema-ok]
