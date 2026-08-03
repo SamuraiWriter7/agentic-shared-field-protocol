@@ -1,4 +1,4 @@
-schema_version: 0.4.0
+schema_version: 0.5.0
 record_type: field-residual-assessment
 residual_assessment_id: residual-assessment:wind.reasoning-residue.hazard.001
 field_id: field:wind.shared-reasoning.v1
@@ -18,3 +18,4 @@ disposition: quarantine-and-revoke
 rationale: Confirmed integrity mismatch may contaminate downstream reasoning.
 assessed_by: agent:field-residual-classifier.v1
 assessed_at: '2026-08-01T09:12:00+09:00'
+
