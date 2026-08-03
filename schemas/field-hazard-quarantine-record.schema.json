@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:kazene:agentic-shared-field-protocol:field-hazard-quarantine-record:0.4.0",
+  "$id": "urn:kazene:agentic-shared-field-protocol:field-hazard-quarantine-record:0.5.0",
   "title": "Field Hazard Quarantine Record",
   "description": "Records containment of a hazardous resource or output.",
   "type": "object",
@@ -21,7 +21,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "0.4.0"
+      "const": "0.5.0"
     },
     "record_type": {
       "const": "field-hazard-quarantine-record"
