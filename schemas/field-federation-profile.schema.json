@@ -1,0 +1,325 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kazene:agentic-shared-field-protocol:field-federation-profile:0.5.0",
+  "title": "Field Federation Profile",
+  "description": "Defines a governed federation of selectively permeable shared fields.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_type",
+    "federation_id",
+    "name",
+    "governance",
+    "admission_policy",
+    "routing_policy",
+    "negotiation_policy",
+    "settlement_policy",
+    "health_policy",
+    "status",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.5.0"
+    },
+    "record_type": {
+      "const": "field-federation-profile"
+    },
+    "federation_id": {
+      "type": "string",
+      "pattern": "^federation:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "governance_mode",
+        "policy_ref",
+        "steward_ids",
+        "quorum"
+      ],
+      "properties": {
+        "governance_mode": {
+          "type": "string",
+          "enum": [
+            "stewarded",
+            "council",
+            "rule-bound"
+          ]
+        },
+        "policy_ref": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200
+        },
+        "steward_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 200
+          }
+        },
+        "quorum": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "admission_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "compatibility_profile_refs",
+        "approval_mode",
+        "minimum_trust_level",
+        "active_field_required",
+        "immune_continuity_required"
+      ],
+      "properties": {
+        "compatibility_profile_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 200
+          }
+        },
+        "approval_mode": {
+          "type": "string",
+          "enum": [
+            "unanimous",
+            "quorum",
+            "policy-evaluated"
+          ]
+        },
+        "minimum_trust_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "active_field_required": {
+          "type": "boolean"
+        },
+        "immune_continuity_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "routing_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowed_resource_domains",
+        "allowed_scopes",
+        "max_hops",
+        "cross_field_lease_required",
+        "revocation_propagation_required",
+        "target_reassessment_required"
+      ],
+      "properties": {
+        "allowed_resource_domains": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "knowledge",
+              "memory",
+              "reasoning",
+              "compute",
+              "value"
+            ]
+          }
+        },
+        "allowed_scopes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "read",
+              "derive",
+              "execute",
+              "redistribute",
+              "commercialize"
+            ]
+          }
+        },
+        "max_hops": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "cross_field_lease_required": {
+          "type": "boolean"
+        },
+        "revocation_propagation_required": {
+          "type": "boolean"
+        },
+        "target_reassessment_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "negotiation_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required_dimensions",
+        "conflict_resolution",
+        "policy_hash_algorithm"
+      ],
+      "properties": {
+        "required_dimensions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "rights",
+              "retention",
+              "audit",
+              "immunity",
+              "royalty",
+              "revocation"
+            ]
+          }
+        },
+        "conflict_resolution": {
+          "type": "string",
+          "enum": [
+            "deny",
+            "stricter-wins",
+            "steward-review"
+          ]
+        },
+        "policy_hash_algorithm": {
+          "const": "sha256"
+        }
+      }
+    },
+    "settlement_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit",
+        "source_field_min_share",
+        "target_field_min_share",
+        "common_pool_share",
+        "rounding_mode",
+        "settlement_required"
+      ],
+      "properties": {
+        "unit": {
+          "type": "string",
+          "enum": [
+            "microunit",
+            "microcredit",
+            "token-unit"
+          ]
+        },
+        "source_field_min_share": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "target_field_min_share": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "common_pool_share": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "rounding_mode": {
+          "type": "string",
+          "enum": [
+            "floor",
+            "nearest",
+            "ceiling"
+          ]
+        },
+        "settlement_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "health_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_quarantine_rate",
+        "max_failed_route_rate",
+        "min_settlement_completion_rate",
+        "max_revocation_lag_seconds",
+        "report_interval_seconds"
+      ],
+      "properties": {
+        "max_quarantine_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "max_failed_route_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "min_settlement_completion_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "max_revocation_lag_seconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "report_interval_seconds": {
+          "type": "integer",
+          "minimum": 60
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "suspended",
+        "retired"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
