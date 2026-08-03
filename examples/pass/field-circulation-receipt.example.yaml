@@ -1,4 +1,4 @@
-schema_version: 0.4.0
+schema_version: 0.5.0
 record_type: field-circulation-receipt
 circulation_receipt_id: circulation-receipt:wind.reasoning-residue.001
 lease_id: lease:wind.reasoning-residue.001
@@ -30,3 +30,4 @@ obligations:
 completed_at: '2026-08-01T08:50:00+09:00'
 issued_by: agent:field-circulation-controller.v1
 issued_at: '2026-08-01T08:51:00+09:00'
+
