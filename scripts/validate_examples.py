@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Validate Agentic Shared Field Protocol v0.4 examples."""
+"""Validate Agentic Shared Field Protocol v0.5 examples."""
 
 from __future__ import annotations
 
 import json
+import math
 import sys
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -43,6 +44,13 @@ SCHEMA_FILES = {
     "field-residual-assessment": SCHEMA_DIR / "field-residual-assessment.schema.json",
     "field-hazard-quarantine-record": SCHEMA_DIR / "field-hazard-quarantine-record.schema.json",
     "field-revocation-propagation-record": SCHEMA_DIR / "field-revocation-propagation-record.schema.json",
+    "field-federation-profile": SCHEMA_DIR / "field-federation-profile.schema.json",
+    "field-federation-admission-record": SCHEMA_DIR / "field-federation-admission-record.schema.json",
+    "field-policy-negotiation-record": SCHEMA_DIR / "field-policy-negotiation-record.schema.json",
+    "cross-field-route-authorization": SCHEMA_DIR / "cross-field-route-authorization.schema.json",
+    "cross-field-circulation-receipt": SCHEMA_DIR / "cross-field-circulation-receipt.schema.json",
+    "multi-field-royalty-settlement-record": SCHEMA_DIR / "multi-field-royalty-settlement-record.schema.json",
+    "federation-circulation-health-report": SCHEMA_DIR / "federation-circulation-health-report.schema.json",
 }
 
 TYPE_ORDER = [
@@ -60,6 +68,13 @@ TYPE_ORDER = [
     "field-residual-assessment",
     "field-hazard-quarantine-record",
     "field-revocation-propagation-record",
+    "field-federation-profile",
+    "field-federation-admission-record",
+    "field-policy-negotiation-record",
+    "cross-field-route-authorization",
+    "cross-field-circulation-receipt",
+    "multi-field-royalty-settlement-record",
+    "federation-circulation-health-report",
 ]
 
 ID_FIELDS = {
@@ -77,6 +92,13 @@ ID_FIELDS = {
     "field-residual-assessment": "residual_assessment_id",
     "field-hazard-quarantine-record": "quarantine_record_id",
     "field-revocation-propagation-record": "propagation_record_id",
+    "field-federation-profile": "federation_id",
+    "field-federation-admission-record": "admission_id",
+    "field-policy-negotiation-record": "negotiation_id",
+    "cross-field-route-authorization": "route_authorization_id",
+    "cross-field-circulation-receipt": "cross_field_receipt_id",
+    "multi-field-royalty-settlement-record": "settlement_id",
+    "federation-circulation-health-report": "health_report_id",
 }
 
 PARTICIPANT_PREFIXES = {
@@ -2369,6 +2391,423 @@ def validate_field_revocation_propagation_record(
 
     return errors
 
+
+TRUST_RANK = {"low": 0, "medium": 1, "high": 2}
+
+
+def validate_field_federation_profile(
+    document: dict[str, Any],
+    _: Registry,
+) -> list[str]:
+    errors: list[str] = []
+    governance = document["governance"]
+    stewards = governance["steward_ids"]
+    if governance["quorum"] > len(stewards):
+        errors.append("governance.quorum: must not exceed steward count")
+    if governance["governance_mode"] == "council" and len(stewards) < 2:
+        errors.append("governance.steward_ids: council requires at least two stewards")
+    settlement = document["settlement_policy"]
+    reserved = (
+        settlement["source_field_min_share"]
+        + settlement["target_field_min_share"]
+        + settlement["common_pool_share"]
+    )
+    if reserved > 1.0 + 1e-12:
+        errors.append("settlement_policy: minimum and common-pool shares exceed 1.0")
+    if document["updated_at"] and parse_datetime(document["updated_at"]) < parse_datetime(document["created_at"]):
+        errors.append("updated_at: must not be earlier than created_at")
+    return errors
+
+
+def validate_field_federation_admission_record(
+    document: dict[str, Any],
+    registry: Registry,
+) -> list[str]:
+    errors: list[str] = []
+    federation, e = get_record(registry, "field-federation-profile", document["federation_id"], "federation_id")
+    errors.extend(e)
+    field, e = get_record(registry, "shared-field-profile", document["field_id"], "field_id")
+    errors.extend(e)
+    if federation is None or field is None:
+        return errors
+    if federation["status"] != "active":
+        errors.append("federation_id: federation must be active")
+    if document["applicant_steward_id"] not in field["governance"]["steward_ids"]:
+        errors.append("applicant_steward_id: must be a steward of the applicant field")
+    policy = federation["admission_policy"]
+    if policy["active_field_required"] and field["status"] != "active":
+        errors.append("field_id: admission policy requires an active field")
+    req_domains = set(document["requested_resource_domains"])
+    req_scopes = set(document["requested_scopes"])
+    domain_limits = set(federation["routing_policy"]["allowed_resource_domains"]) & set(field["resource_domains"])
+    scope_limits = set(federation["routing_policy"]["allowed_scopes"]) & set(field["reuse_policy"]["allowed_reuse_scopes"])
+    excess_domains = sorted(req_domains - domain_limits)
+    excess_scopes = sorted(req_scopes - scope_limits)
+    if excess_domains:
+        errors.append(f"requested_resource_domains: exceed federation or field policy: {excess_domains}")
+    if excess_scopes:
+        errors.append(f"requested_scopes: exceed federation or field policy: {excess_scopes}")
+    approvals = document["approvals"]
+    approver_ids = [a["approver_id"] for a in approvals]
+    if len(approver_ids) != len(set(approver_ids)):
+        errors.append("approvals: duplicate approver_id")
+    invalid_approvers = sorted(set(approver_ids) - set(federation["governance"]["steward_ids"]))
+    if invalid_approvers:
+        errors.append(f"approvals: approvers are not federation stewards: {invalid_approvers}")
+    approve_count = sum(1 for a in approvals if a["decision"] == "approve")
+    decision = document["decision"]
+    checks_pass = all(v == "pass" for v in document["compatibility_checks"].values())
+    if decision == "admitted":
+        if not checks_pass:
+            errors.append("decision: admitted requires all compatibility checks to pass")
+        if approve_count < federation["governance"]["quorum"]:
+            errors.append("approvals: admitted field does not satisfy federation quorum")
+        if policy["approval_mode"] == "unanimous" and approve_count != len(federation["governance"]["steward_ids"]):
+            errors.append("approvals: unanimous admission requires every steward")
+        if TRUST_RANK[document["trust_level"]] < TRUST_RANK[policy["minimum_trust_level"]]:
+            errors.append("trust_level: below federation minimum")
+        if not document["granted_resource_domains"] or not document["granted_scopes"]:
+            errors.append("granted_resource_domains: admitted fields require non-empty grants")
+        if document["lifecycle_status"] != "active":
+            errors.append("lifecycle_status: admitted fields must be active")
+    else:
+        if document["granted_resource_domains"] or document["granted_scopes"]:
+            errors.append("granted scopes and domains must be empty unless admitted")
+        if document["lifecycle_status"] == "active":
+            errors.append("lifecycle_status: non-admitted fields cannot be active")
+    if not set(document["granted_resource_domains"]) <= req_domains:
+        errors.append("granted_resource_domains: must be a subset of requested domains")
+    if not set(document["granted_scopes"]) <= req_scopes:
+        errors.append("granted_scopes: must be a subset of requested scopes")
+    valid_from = parse_datetime(document["valid_from"])
+    if parse_datetime(document["issued_at"]) > valid_from:
+        errors.append("issued_at: must not be later than valid_from")
+    if document.get("valid_until") and parse_datetime(document["valid_until"]) <= valid_from:
+        errors.append("valid_until: must be later than valid_from")
+    return errors
+
+
+def _bounded_retention(field: dict[str, Any]) -> int | None:
+    retention = field["retention_policy"]
+    return retention.get("max_retention_seconds") if retention["mode"] == "bounded" else None
+
+
+def validate_field_policy_negotiation_record(
+    document: dict[str, Any],
+    registry: Registry,
+) -> list[str]:
+    errors: list[str] = []
+    federation, e = get_record(registry, "field-federation-profile", document["federation_id"], "federation_id")
+    errors.extend(e)
+    source_adm, e = get_record(registry, "field-federation-admission-record", document["source_admission_id"], "source_admission_id")
+    errors.extend(e)
+    target_adm, e = get_record(registry, "field-federation-admission-record", document["target_admission_id"], "target_admission_id")
+    errors.extend(e)
+    if federation is None or source_adm is None or target_adm is None:
+        return errors
+    if source_adm["federation_id"] != document["federation_id"] or target_adm["federation_id"] != document["federation_id"]:
+        errors.append("admission ids: both admissions must belong to the federation")
+    if source_adm["decision"] != "admitted" or source_adm["lifecycle_status"] != "active" or target_adm["decision"] != "admitted" or target_adm["lifecycle_status"] != "active":
+        errors.append("admission ids: source and target admissions must be active and admitted")
+    if document["source_field_id"] != source_adm["field_id"] or document["target_field_id"] != target_adm["field_id"]:
+        errors.append("source_field_id/target_field_id: do not match admissions")
+    if document["source_field_id"] == document["target_field_id"]:
+        errors.append("target_field_id: cross-field negotiation requires distinct fields")
+    source = registry["shared-field-profile"].get(document["source_field_id"])
+    target = registry["shared-field-profile"].get(document["target_field_id"])
+    if source is None or target is None:
+        errors.append("field ids: source or target field is unavailable")
+        return errors
+    domain = document["requested_resource_domain"]
+    allowed_domains = set(source_adm["granted_resource_domains"]) & set(target_adm["granted_resource_domains"]) & set(federation["routing_policy"]["allowed_resource_domains"])
+    if domain not in allowed_domains:
+        errors.append("requested_resource_domain: not shared by source, target, and federation grants")
+    scopes = set(document["requested_scopes"])
+    allowed_scopes = set(source_adm["granted_scopes"]) & set(target_adm["granted_scopes"]) & set(federation["routing_policy"]["allowed_scopes"]) & set(source["reuse_policy"]["allowed_reuse_scopes"]) & set(target["reuse_policy"]["allowed_reuse_scopes"])
+    excess = sorted(scopes - allowed_scopes)
+    if excess:
+        errors.append(f"requested_scopes: outside policy intersection: {excess}")
+    terms = document["resolved_terms"]
+    if not set(terms["accepted_classifications"]) <= set(target["permeability_policy"]["inbound"]["accepted_classifications"]):
+        errors.append("resolved_terms.accepted_classifications: target field does not accept every class")
+    if terms["max_lease_seconds"] > min(source["reuse_policy"]["max_lease_seconds"], target["reuse_policy"]["max_lease_seconds"]):
+        errors.append("resolved_terms.max_lease_seconds: exceeds source or target field limit")
+    retention_limits = [x for x in (_bounded_retention(source), _bounded_retention(target)) if x is not None]
+    if retention_limits and terms["retention_seconds"] > min(retention_limits):
+        errors.append("resolved_terms.retention_seconds: exceeds source or target retention")
+    expected = {
+        "audit_required": target["permeability_policy"]["inbound"]["audit_required"],
+        "derivative_trace_required": source["permeability_policy"]["outbound"]["derivative_trace_required"] or target["permeability_policy"]["outbound"]["derivative_trace_required"],
+        "royalty_settlement_required": federation["settlement_policy"]["settlement_required"] or source["permeability_policy"]["outbound"]["royalty_settlement_required"] or target["permeability_policy"]["outbound"]["royalty_settlement_required"],
+        "revocation_propagation_required": federation["routing_policy"]["revocation_propagation_required"] or source["permeability_policy"]["outbound"]["revocation_propagation_required"] or target["permeability_policy"]["outbound"]["revocation_propagation_required"],
+        "target_reassessment_required": federation["routing_policy"]["target_reassessment_required"],
+    }
+    for key, value in expected.items():
+        if terms[key] != value:
+            errors.append(f"resolved_terms.{key}: expected {value!r} from strict policy intersection")
+    if terms["royalty_settlement_required"] and not terms.get("royalty_policy_ref"):
+        errors.append("resolved_terms.royalty_policy_ref: required when settlement is required")
+    if document["decision"] == "agreed" and document["unresolved_conflicts"]:
+        errors.append("unresolved_conflicts: agreed negotiation must have none")
+    if parse_datetime(document["expires_at"]) <= parse_datetime(document["negotiated_at"]):
+        errors.append("expires_at: must be later than negotiated_at")
+    if document["issued_by"] not in federation["governance"]["steward_ids"]:
+        errors.append("issued_by: must be a federation steward")
+    return errors
+
+
+def validate_cross_field_route_authorization(
+    document: dict[str, Any],
+    registry: Registry,
+) -> list[str]:
+    errors: list[str] = []
+    negotiation, e = get_record(registry, "field-policy-negotiation-record", document["negotiation_id"], "negotiation_id")
+    errors.extend(e)
+    federation, e = get_record(registry, "field-federation-profile", document["federation_id"], "federation_id")
+    errors.extend(e)
+    if negotiation is None or federation is None:
+        return errors
+    if negotiation["decision"] != "agreed":
+        errors.append("negotiation_id: route requires an agreed negotiation")
+    for key in ["federation_id", "source_admission_id", "target_admission_id", "source_field_id", "target_field_id"]:
+        if document[key] != negotiation[key]:
+            errors.append(f"{key}: does not match negotiation")
+    if document["permitted_resource_domain"] != negotiation["requested_resource_domain"]:
+        errors.append("permitted_resource_domain: does not match negotiation")
+    if not set(document["permitted_scopes"]) <= set(negotiation["requested_scopes"]):
+        errors.append("permitted_scopes: exceed negotiated scopes")
+    if document["max_hops"] > federation["routing_policy"]["max_hops"]:
+        errors.append("max_hops: exceeds federation routing policy")
+    if document["max_lease_seconds"] > negotiation["resolved_terms"]["max_lease_seconds"]:
+        errors.append("max_lease_seconds: exceeds negotiated lease")
+    expected = {
+        "target_reassessment_required": negotiation["resolved_terms"]["target_reassessment_required"],
+        "audit_required": negotiation["resolved_terms"]["audit_required"],
+        "royalty_settlement_required": negotiation["resolved_terms"]["royalty_settlement_required"],
+        "revocation_propagation_required": negotiation["resolved_terms"]["revocation_propagation_required"],
+    }
+    for key, value in expected.items():
+        if document["conditions"][key] != value:
+            errors.append(f"conditions.{key}: does not match negotiated term")
+    source = registry["shared-field-profile"].get(document["source_field_id"])
+    target = registry["shared-field-profile"].get(document["target_field_id"])
+    expected_coverage = bool(source and target and source["immune_policy"]["require_known_derivative_coverage"] and target["immune_policy"]["require_known_derivative_coverage"])
+    if document["conditions"]["known_derivative_coverage_required"] != expected_coverage:
+        errors.append("conditions.known_derivative_coverage_required: does not match field immune policies")
+    if document["authorized_by"] not in federation["governance"]["steward_ids"]:
+        errors.append("authorized_by: must be a federation steward")
+    if parse_datetime(document["valid_until"]) > parse_datetime(negotiation["expires_at"]):
+        errors.append("valid_until: must not exceed negotiation expiry")
+    if parse_datetime(document["valid_until"]) <= parse_datetime(document["authorized_at"]):
+        errors.append("valid_until: must be later than authorized_at")
+    return errors
+
+
+def validate_cross_field_circulation_receipt(
+    document: dict[str, Any],
+    registry: Registry,
+) -> list[str]:
+    errors: list[str] = []
+    route, e = get_record(registry, "cross-field-route-authorization", document["route_authorization_id"], "route_authorization_id")
+    errors.extend(e)
+    target_env, e = get_record(registry, "shared-resource-envelope", document["target_envelope_id"], "target_envelope_id")
+    errors.extend(e)
+    target_req, e = get_record(registry, "field-contribution-request", document["target_contribution_request_id"], "target_contribution_request_id")
+    errors.extend(e)
+    target_receipt, e = get_record(registry, "field-contribution-receipt", document["target_contribution_receipt_id"], "target_contribution_receipt_id")
+    errors.extend(e)
+    if route is None or target_env is None or target_req is None or target_receipt is None:
+        return errors
+    if route["status"] != "active":
+        errors.append("route_authorization_id: route must be active")
+    for key in ["federation_id", "source_field_id", "target_field_id"]:
+        if document[key] != route[key]:
+            errors.append(f"{key}: does not match route authorization")
+    source_receipt = find_field_resource_receipt(registry, document["source_field_resource_id"])
+    if source_receipt is None:
+        errors.append("source_field_resource_id: unknown admitted field resource")
+        return errors
+    if source_receipt["field_id"] != document["source_field_id"]:
+        errors.append("source_field_resource_id: resource belongs to a different source field")
+    if source_receipt["envelope_id"] != document["source_envelope_id"]:
+        errors.append("source_envelope_id: does not match source resource receipt")
+    source_env = registry["shared-resource-envelope"].get(document["source_envelope_id"])
+    if source_env is None:
+        errors.append("source_envelope_id: source envelope unavailable")
+        return errors
+    started = parse_datetime(document["started_at"])
+    for quarantine in registry["field-hazard-quarantine-record"].values():
+        if (
+            quarantine["subject"]["subject_type"] == "field-resource"
+            and quarantine["subject"]["subject_id"]
+            == document["source_field_resource_id"]
+            and quarantine["status"] == "active"
+            and parse_datetime(quarantine["containment"]["isolated_at"])
+            <= started
+        ):
+            errors.append(
+                "source_field_resource_id: source was quarantined before transfer"
+            )
+    for propagation in registry[
+        "field-revocation-propagation-record"
+    ].values():
+        if (
+            propagation["source"]["field_resource_id"]
+            == document["source_field_resource_id"]
+            and parse_datetime(propagation["source"]["revoked_at"])
+            <= started
+        ):
+            errors.append(
+                "source_field_resource_id: source was revoked before transfer"
+            )
+    if target_env["field_id"] != document["target_field_id"]:
+        errors.append("target_envelope_id: envelope belongs to a different target field")
+    if document["source_field_resource_id"] not in target_env["origin"]["derivative_of"] and document["source_envelope_id"] not in target_env["origin"]["derivative_of"]:
+        errors.append("target_envelope_id: derivative lineage does not reference source resource")
+    if target_req["envelope_id"] != document["target_envelope_id"] or target_req["field_id"] != document["target_field_id"]:
+        errors.append("target_contribution_request_id: does not match target envelope and field")
+    if target_receipt["request_id"] != document["target_contribution_request_id"] or target_receipt["envelope_id"] != document["target_envelope_id"]:
+        errors.append("target_contribution_receipt_id: does not close target request")
+    if target_receipt["outcome"] != document["outcome"]:
+        errors.append("outcome: does not match target contribution receipt")
+    if document["transferred_resource_domain"] != route["permitted_resource_domain"] or document["transferred_resource_domain"] != source_env["resource_domain"] or document["transferred_resource_domain"] != target_env["resource_domain"]:
+        errors.append("transferred_resource_domain: source, target, and route must agree")
+    if not set(document["exercised_scopes"]) <= set(route["permitted_scopes"]):
+        errors.append("exercised_scopes: exceed route authorization")
+    if document["hop_count"] > route["max_hops"]:
+        errors.append("hop_count: exceeds route authorization")
+    if document["lineage"]["origin_trace_id"] != source_env["origin"].get("origin_trace_id"):
+        errors.append("lineage.origin_trace_id: does not match source envelope")
+    if document["lineage"]["derivative_trace_id"] != target_env["origin"].get("origin_trace_id"):
+        errors.append("lineage.derivative_trace_id: does not match target envelope")
+    expectations = {
+        "royalty_settlement_required": route["conditions"]["royalty_settlement_required"],
+        "revocation_propagation_required": route["conditions"]["revocation_propagation_required"],
+    }
+    for key, expected in expectations.items():
+        if document["obligations"][key] != expected:
+            errors.append(f"obligations.{key}: does not match route")
+    if route["conditions"]["target_reassessment_required"] and target_receipt["outcome"] == "admitted" and not document["obligations"]["target_reassessment_completed"]:
+        errors.append("obligations.target_reassessment_completed: required for admitted target outcome")
+    if document["status"] == "completed" and document["outcome"] != "admitted":
+        errors.append("status: completed requires admitted target outcome")
+    if document["status"] == "blocked" and document["outcome"] == "admitted":
+        errors.append("status: blocked cannot accompany admitted target outcome")
+    completed = parse_datetime(document["completed_at"])
+    if started < parse_datetime(route["authorized_at"]):
+        errors.append("started_at: must not precede route authorization")
+    if completed < started:
+        errors.append("completed_at: must not precede started_at")
+    if completed > parse_datetime(route["valid_until"]):
+        errors.append("completed_at: exceeds route validity")
+    return errors
+
+
+def _rounded_share(amount: int, share: float, mode: str) -> int:
+    raw = amount * share
+    if mode == "floor":
+        return math.floor(raw)
+    if mode == "ceiling":
+        return math.ceil(raw)
+    return int(math.floor(raw + 0.5))
+
+
+def validate_multi_field_royalty_settlement_record(
+    document: dict[str, Any],
+    registry: Registry,
+) -> list[str]:
+    errors: list[str] = []
+    federation, e = get_record(registry, "field-federation-profile", document["federation_id"], "federation_id")
+    errors.extend(e)
+    receipt, e = get_record(registry, "cross-field-circulation-receipt", document["cross_field_receipt_id"], "cross_field_receipt_id")
+    errors.extend(e)
+    if federation is None or receipt is None:
+        return errors
+    if receipt["federation_id"] != document["federation_id"]:
+        errors.append("cross_field_receipt_id: receipt belongs to another federation")
+    policy = federation["settlement_policy"]
+    if document["unit"] != policy["unit"]:
+        errors.append("unit: does not match federation settlement policy")
+    if document["total_allocated"] != sum(item["amount"] for item in document["allocations"]):
+        errors.append("total_allocated: does not equal allocation sum")
+    if document["total_allocated"] != document["gross_amount"]:
+        errors.append("total_allocated: must equal gross_amount")
+    keys = [(a["beneficiary_type"], a["beneficiary_id"]) for a in document["allocations"]]
+    if len(keys) != len(set(keys)):
+        errors.append("allocations: duplicate beneficiary")
+    by_type: dict[str, int] = defaultdict(int)
+    for item in document["allocations"]:
+        by_type[item["beneficiary_type"]] += item["amount"]
+        if item["beneficiary_type"] == "source-field" and item.get("field_id") != receipt["source_field_id"]:
+            errors.append("allocations: source-field allocation must name receipt source field")
+        if item["beneficiary_type"] == "target-field" and item.get("field_id") != receipt["target_field_id"]:
+            errors.append("allocations: target-field allocation must name receipt target field")
+    gross = document["gross_amount"]
+    if by_type["source-field"] < _rounded_share(gross, policy["source_field_min_share"], "ceiling"):
+        errors.append("allocations: source-field share is below federation minimum")
+    if by_type["target-field"] < _rounded_share(gross, policy["target_field_min_share"], "ceiling"):
+        errors.append("allocations: target-field share is below federation minimum")
+    expected_pool = _rounded_share(gross, policy["common_pool_share"], policy["rounding_mode"])
+    if by_type["federation-pool"] != expected_pool:
+        errors.append("allocations: federation-pool amount does not match policy")
+    if document["status"] == "completed":
+        if receipt["outcome"] != "admitted" or receipt["status"] != "completed":
+            errors.append("status: completed settlement requires completed admitted circulation")
+        if parse_datetime(document["settled_at"]) < parse_datetime(receipt["completed_at"]):
+            errors.append("settled_at: must not precede cross-field completion")
+        if not document.get("ledger_ref"):
+            errors.append("ledger_ref: required for completed settlement")
+    return errors
+
+
+def validate_federation_circulation_health_report(
+    document: dict[str, Any],
+    registry: Registry,
+) -> list[str]:
+    errors: list[str] = []
+    federation, e = get_record(registry, "field-federation-profile", document["federation_id"], "federation_id")
+    errors.extend(e)
+    if federation is None:
+        return errors
+    metrics = document["metrics"]
+    attempts = metrics["cross_field_attempts"]
+    if metrics["completed_routes"] + metrics["failed_routes"] > attempts:
+        errors.append("metrics: completed_routes plus failed_routes exceeds attempts")
+    if metrics["quarantined_transfers"] > attempts:
+        errors.append("metrics.quarantined_transfers: exceeds attempts")
+    if metrics["settled_transfers"] > metrics["royalty_required_transfers"]:
+        errors.append("metrics.settled_transfers: exceeds royalty-required transfers")
+    expected_rates = {
+        "failed_route_rate": metrics["failed_routes"] / attempts if attempts else 0.0,
+        "quarantine_rate": metrics["quarantined_transfers"] / attempts if attempts else 0.0,
+        "settlement_completion_rate": metrics["settled_transfers"] / metrics["royalty_required_transfers"] if metrics["royalty_required_transfers"] else 1.0,
+    }
+    for key, expected in expected_rates.items():
+        if abs(document["derived_rates"][key] - expected) > 1e-9:
+            errors.append(f"derived_rates.{key}: expected {expected:.12g} from metrics")
+    policy = federation["health_policy"]
+    breaches: list[str] = []
+    if expected_rates["failed_route_rate"] > policy["max_failed_route_rate"]:
+        breaches.append("FAILED_ROUTE_RATE")
+    if expected_rates["quarantine_rate"] > policy["max_quarantine_rate"]:
+        breaches.append("QUARANTINE_RATE")
+    if expected_rates["settlement_completion_rate"] < policy["min_settlement_completion_rate"]:
+        breaches.append("SETTLEMENT_COMPLETION_RATE")
+    if metrics["max_observed_revocation_lag_seconds"] > policy["max_revocation_lag_seconds"]:
+        breaches.append("REVOCATION_LAG")
+    if set(document["threshold_breaches"]) != set(breaches):
+        errors.append(f"threshold_breaches: expected {sorted(breaches)}")
+    expected_status = "healthy" if not breaches else ("critical" if len(breaches) >= 2 or "REVOCATION_LAG" in breaches else "degraded")
+    if document["status"] != expected_status:
+        errors.append(f"status: expected {expected_status!r} from threshold breaches")
+    start = parse_datetime(document["window_start"])
+    end = parse_datetime(document["window_end"])
+    if end <= start:
+        errors.append("window_end: must be later than window_start")
+    if parse_datetime(document["generated_at"]) < end:
+        errors.append("generated_at: must not precede window_end")
+    return errors
+
 SEMANTIC_VALIDATORS: dict[
     str,
     Callable[[dict[str, Any], Registry], list[str]],
@@ -2389,6 +2828,13 @@ SEMANTIC_VALIDATORS: dict[
     "field-residual-assessment": validate_field_residual_assessment,
     "field-hazard-quarantine-record": validate_field_hazard_quarantine_record,
     "field-revocation-propagation-record": validate_field_revocation_propagation_record,
+    "field-federation-profile": validate_field_federation_profile,
+    "field-federation-admission-record": validate_field_federation_admission_record,
+    "field-policy-negotiation-record": validate_field_policy_negotiation_record,
+    "cross-field-route-authorization": validate_cross_field_route_authorization,
+    "cross-field-circulation-receipt": validate_cross_field_circulation_receipt,
+    "multi-field-royalty-settlement-record": validate_multi_field_royalty_settlement_record,
+    "federation-circulation-health-report": validate_federation_circulation_health_report,
 }
 
 
@@ -2524,7 +2970,7 @@ def validate_expected_fail(
 
 
 def main() -> int:
-    print("=== Agentic Shared Field Protocol v0.4 Validation ===")
+    print("=== Agentic Shared Field Protocol v0.5 Validation ===")
 
     schemas = {
         record_type: load_json(path)
@@ -2596,4 +3042,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-
