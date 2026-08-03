@@ -1,0 +1,35 @@
+schema_version: 0.5.0
+record_type: multi-field-royalty-settlement-record
+settlement_id: multi-field-settlement:wind.allocation-mismatch.001
+federation_id: federation:wind.metabolic-network.v1
+cross_field_receipt_id: cross-field-receipt:wind.reasoning-to-safety.001
+policy_ref: policy:wind-federated-royalty.v1
+unit: microunit
+gross_amount: 1000000
+allocations:
+- beneficiary_type: origin
+  beneficiary_id: human:shidenkai-alpha
+  amount: 140000
+  basis: origin contribution
+- beneficiary_type: source-field
+  beneficiary_id: field:wind.shared-reasoning.v1
+  field_id: field:wind.shared-reasoning.v1
+  amount: 400000
+  basis: source field stewardship and resource availability
+- beneficiary_type: target-field
+  beneficiary_id: field:wind.shared-safety.v1
+  field_id: field:wind.shared-safety.v1
+  amount: 300000
+  basis: target audit, admission, and continued hosting
+- beneficiary_type: agent
+  beneficiary_id: agent:federation-bridge.v1
+  amount: 100000
+  basis: cross-field transformation and submission
+- beneficiary_type: federation-pool
+  beneficiary_id: federation:wind.metabolic-network.v1
+  amount: 50000
+  basis: federation common-pool share
+total_allocated: 1000000
+status: completed
+settled_at: '2026-08-02T10:06:00+09:00'
+ledger_ref: ledger:wind-federation.2026-08-02.001
