@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kazene:agentic-shared-field-protocol:multi-field-royalty-settlement-record:0.5.0",
+  "title": "Multi Field Royalty Settlement Record",
+  "description": "Settles traceable value across source, target, agents, origins, and federation pool.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_type",
+    "settlement_id",
+    "federation_id",
+    "cross_field_receipt_id",
+    "policy_ref",
+    "unit",
+    "gross_amount",
+    "allocations",
+    "total_allocated",
+    "status",
+    "settled_at",
+    "ledger_ref"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.5.0"
+    },
+    "record_type": {
+      "const": "multi-field-royalty-settlement-record"
+    },
+    "settlement_id": {
+      "type": "string",
+      "pattern": "^multi-field-settlement:[a-z0-9](?:[a-z0-9._-]{1,160}[a-z0-9])?$"
+    },
+    "federation_id": {
+      "type": "string",
+      "pattern": "^federation:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "cross_field_receipt_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200
+    },
+    "policy_ref": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200
+    },
+    "unit": {
+      "type": "string",
+      "enum": [
+        "microunit",
+        "microcredit",
+        "token-unit"
+      ]
+    },
+    "gross_amount": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "allocations": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "beneficiary_type",
+          "beneficiary_id",
+          "amount",
+          "basis"
+        ],
+        "properties": {
+          "beneficiary_type": {
+            "type": "string",
+            "enum": [
+              "origin",
+              "source-field",
+              "target-field",
+              "agent",
+              "federation-pool",
+              "other"
+            ]
+          },
+          "beneficiary_id": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 200
+          },
+          "field_id": {
+            "type": "string",
+            "pattern": "^field:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "basis": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        }
+      }
+    },
+    "total_allocated": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed",
+        "disputed",
+        "held"
+      ]
+    },
+    "settled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ledger_ref": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200
+    }
+  }
+}
