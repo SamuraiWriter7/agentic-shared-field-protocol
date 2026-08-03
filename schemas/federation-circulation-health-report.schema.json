@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kazene:agentic-shared-field-protocol:federation-circulation-health-report:0.5.0",
+  "title": "Federation Circulation Health Report",
+  "description": "Reports federation-level routing, quarantine, settlement, and revocation health.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_type",
+    "health_report_id",
+    "federation_id",
+    "window_start",
+    "window_end",
+    "metrics",
+    "derived_rates",
+    "threshold_breaches",
+    "status",
+    "recommended_actions",
+    "generated_by",
+    "generated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.5.0"
+    },
+    "record_type": {
+      "const": "federation-circulation-health-report"
+    },
+    "health_report_id": {
+      "type": "string",
+      "pattern": "^federation-health:[a-z0-9](?:[a-z0-9._-]{1,160}[a-z0-9])?$"
+    },
+    "federation_id": {
+      "type": "string",
+      "pattern": "^federation:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "window_start": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "window_end": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cross_field_attempts",
+        "completed_routes",
+        "failed_routes",
+        "quarantined_transfers",
+        "royalty_required_transfers",
+        "settled_transfers",
+        "revocations_issued",
+        "max_observed_revocation_lag_seconds"
+      ],
+      "properties": {
+        "cross_field_attempts": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "completed_routes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed_routes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "quarantined_transfers": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "royalty_required_transfers": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "settled_transfers": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "revocations_issued": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_observed_revocation_lag_seconds": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "derived_rates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "failed_route_rate",
+        "quarantine_rate",
+        "settlement_completion_rate"
+      ],
+      "properties": {
+        "failed_route_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "quarantine_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "settlement_completion_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "threshold_breaches": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "FAILED_ROUTE_RATE",
+          "QUARANTINE_RATE",
+          "SETTLEMENT_COMPLETION_RATE",
+          "REVOCATION_LAG"
+        ]
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "healthy",
+        "degraded",
+        "critical"
+      ]
+    },
+    "recommended_actions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 300
+      }
+    },
+    "generated_by": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
