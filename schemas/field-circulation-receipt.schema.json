@@ -1,156 +1,158 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:kazene:agentic-shared-field-protocol:cross-field-circulation-receipt:0.5.0",
-  "title": "Cross Field Circulation Receipt",
-  "description": "Closes a cross-field resource transfer through the target field contribution boundary.",
+  "$id": "urn:kazene:agentic-shared-field-protocol:field-circulation-receipt:0.5.0",
+  "title": "Field Circulation Receipt",
+  "description": "Closes a field-resource lease with use, return, trace, and obligation evidence.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schema_version",
     "record_type",
-    "cross_field_receipt_id",
-    "federation_id",
-    "route_authorization_id",
-    "source_field_id",
-    "target_field_id",
-    "source_field_resource_id",
-    "source_envelope_id",
-    "transfer_id",
-    "target_envelope_id",
-    "target_contribution_request_id",
-    "target_contribution_receipt_id",
-    "transferred_resource_domain",
-    "exercised_scopes",
-    "hop_count",
-    "outcome",
-    "lineage",
+    "circulation_receipt_id",
+    "lease_id",
+    "reuse_request_id",
+    "reuse_authorization_id",
+    "field_id",
+    "field_resource_id",
+    "lessee_binding_id",
+    "usage",
+    "return_records",
     "obligations",
-    "started_at",
     "completed_at",
-    "status"
+    "issued_by",
+    "issued_at"
   ],
   "properties": {
     "schema_version": {
       "const": "0.5.0"
     },
     "record_type": {
-      "const": "cross-field-circulation-receipt"
+      "const": "field-circulation-receipt"
     },
-    "cross_field_receipt_id": {
+    "circulation_receipt_id": {
       "type": "string",
-      "pattern": "^cross-field-receipt:[a-z0-9](?:[a-z0-9._-]{1,160}[a-z0-9])?$"
+      "pattern": "^circulation-receipt:[a-z0-9][a-z0-9._:-]{2,199}$"
     },
-    "federation_id": {
+    "lease_id": {
       "type": "string",
-      "pattern": "^federation:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+      "pattern": "^lease:[a-z0-9][a-z0-9._:-]{2,199}$"
     },
-    "route_authorization_id": {
+    "reuse_request_id": {
       "type": "string",
-      "minLength": 3,
-      "maxLength": 200
+      "pattern": "^reuse-request:[a-z0-9][a-z0-9._:-]{2,199}$"
     },
-    "source_field_id": {
+    "reuse_authorization_id": {
       "type": "string",
-      "pattern": "^field:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+      "pattern": "^reuse-authz:[a-z0-9][a-z0-9._:-]{2,199}$"
     },
-    "target_field_id": {
+    "field_id": {
       "type": "string",
-      "pattern": "^field:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+      "pattern": "^field:[a-z0-9][a-z0-9._:-]{2,199}$"
     },
-    "source_field_resource_id": {
+    "field_resource_id": {
       "type": "string",
-      "minLength": 3,
-      "maxLength": 200
+      "pattern": "^field-resource:[a-z0-9][a-z0-9._:-]{2,199}$"
     },
-    "source_envelope_id": {
+    "lessee_binding_id": {
       "type": "string",
-      "minLength": 3,
-      "maxLength": 200
+      "pattern": "^binding:[a-z0-9][a-z0-9._:-]{2,199}$"
     },
-    "transfer_id": {
-      "type": "string",
-      "minLength": 3,
-      "maxLength": 200
-    },
-    "target_envelope_id": {
-      "type": "string",
-      "minLength": 3,
-      "maxLength": 200
-    },
-    "target_contribution_request_id": {
-      "type": "string",
-      "minLength": 3,
-      "maxLength": 200
-    },
-    "target_contribution_receipt_id": {
-      "type": "string",
-      "minLength": 3,
-      "maxLength": 200
-    },
-    "transferred_resource_domain": {
-      "type": "string",
-      "enum": [
-        "knowledge",
-        "memory",
-        "reasoning",
-        "compute",
-        "value"
-      ]
-    },
-    "exercised_scopes": {
-      "type": "array",
-      "minItems": 1,
-      "uniqueItems": true,
-      "items": {
-        "type": "string",
-        "enum": [
-          "read",
-          "derive",
-          "execute",
-          "redistribute",
-          "commercialize"
-        ]
-      }
-    },
-    "hop_count": {
-      "type": "integer",
-      "minimum": 1
-    },
-    "outcome": {
-      "type": "string",
-      "enum": [
-        "admitted",
-        "quarantined",
-        "rejected",
-        "pending-human-review"
-      ]
-    },
-    "lineage": {
+    "usage": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "origin_trace_id",
-        "derivative_trace_id",
-        "previous_cross_field_receipt_ids"
+        "status",
+        "started_at",
+        "ended_at",
+        "actual_scopes",
+        "bytes_read"
       ],
       "properties": {
-        "origin_trace_id": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "completed",
+            "failed",
+            "cancelled",
+            "expired"
+          ]
+        },
+        "execution_id": {
           "type": "string",
           "minLength": 3,
           "maxLength": 200
         },
-        "derivative_trace_id": {
+        "started_at": {
           "type": "string",
-          "minLength": 3,
-          "maxLength": 200
+          "format": "date-time"
         },
-        "previous_cross_field_receipt_ids": {
+        "ended_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "actual_scopes": {
           "type": "array",
+          "minItems": 1,
           "uniqueItems": true,
           "items": {
             "type": "string",
-            "minLength": 3,
-            "maxLength": 200
+            "enum": [
+              "read",
+              "derive",
+              "execute",
+              "redistribute",
+              "commercialize"
+            ]
+          }
+        },
+        "bytes_read": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "return_records": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "return_role",
+          "envelope_id",
+          "contribution_request_id",
+          "return_status"
+        ],
+        "properties": {
+          "return_role": {
+            "type": "string",
+            "enum": [
+              "derivative",
+              "residual",
+              "failure-evidence"
+            ]
+          },
+          "envelope_id": {
+            "type": "string",
+            "pattern": "^envelope:[a-z0-9][a-z0-9._:-]{2,199}$"
+          },
+          "contribution_request_id": {
+            "type": "string",
+            "pattern": "^contribution-request:[a-z0-9][a-z0-9._:-]{2,199}$"
+          },
+          "contribution_receipt_id": {
+            "type": "string",
+            "pattern": "^contribution-receipt:[a-z0-9][a-z0-9._:-]{2,199}$"
+          },
+          "return_status": {
+            "type": "string",
+            "enum": [
+              "submitted",
+              "admitted",
+              "rejected",
+              "quarantined",
+              "pending-human-review"
+            ]
           }
         }
       }
@@ -159,37 +161,55 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "royalty_settlement_required",
-        "revocation_propagation_required",
-        "target_reassessment_completed"
+        "derivative_trace_ids",
+        "royalty_status",
+        "revocation_acknowledged",
+        "lease_closed"
       ],
       "properties": {
-        "royalty_settlement_required": {
+        "derivative_trace_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 200
+          }
+        },
+        "royalty_status": {
+          "type": "string",
+          "enum": [
+            "not-required",
+            "pending",
+            "settled",
+            "failed"
+          ]
+        },
+        "royalty_settlement_ref": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200
+        },
+        "revocation_acknowledged": {
           "type": "boolean"
         },
-        "revocation_propagation_required": {
-          "type": "boolean"
-        },
-        "target_reassessment_completed": {
+        "lease_closed": {
           "type": "boolean"
         }
       }
-    },
-    "started_at": {
-      "type": "string",
-      "format": "date-time"
     },
     "completed_at": {
       "type": "string",
       "format": "date-time"
     },
-    "status": {
+    "issued_by": {
       "type": "string",
-      "enum": [
-        "completed",
-        "blocked",
-        "pending"
-      ]
+      "minLength": 3,
+      "maxLength": 160
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
     }
   }
 }
