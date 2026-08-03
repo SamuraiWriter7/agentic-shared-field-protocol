@@ -1,4 +1,4 @@
-schema_version: "0.4.0"
+schema_version: "0.5.0"
 record_type: field-contribution-assessment
 
 assessment_id: contribution-assessment:wind.invalid-accept.001
@@ -21,4 +21,3 @@ resolved_classification: recoverable
 reason_codes:
   - AUDIT_FAILED_BUT_ACCEPTED
 assessed_at: "2026-08-01T07:34:00+09:00"
-
