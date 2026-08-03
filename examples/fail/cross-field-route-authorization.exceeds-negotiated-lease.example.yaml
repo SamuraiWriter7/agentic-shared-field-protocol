@@ -1,0 +1,26 @@
+schema_version: 0.5.0
+record_type: cross-field-route-authorization
+route_authorization_id: route-authorization:wind.excessive-lease.001
+federation_id: federation:wind.metabolic-network.v1
+negotiation_id: policy-negotiation:wind.reasoning-to-safety.001
+source_admission_id: federation-admission:wind.shared-reasoning.v1
+target_admission_id: federation-admission:wind.shared-safety.v1
+source_field_id: field:wind.shared-reasoning.v1
+target_field_id: field:wind.shared-safety.v1
+permitted_resource_domain: reasoning
+permitted_scopes:
+- read
+- derive
+- redistribute
+max_hops: 1
+max_lease_seconds: 1800
+conditions:
+  target_reassessment_required: true
+  audit_required: true
+  royalty_settlement_required: true
+  revocation_propagation_required: true
+  known_derivative_coverage_required: true
+authorized_by: org:wind-council
+authorized_at: '2026-08-02T09:10:00+09:00'
+valid_until: '2026-09-01T09:10:00+09:00'
+status: active
