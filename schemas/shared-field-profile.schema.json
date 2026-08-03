@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:kazene:agentic-shared-field-protocol:shared-field-profile:0.4.0",
+  "$id": "urn:kazene:agentic-shared-field-protocol:shared-field-profile:0.5.0",
   "title": "Agentic Shared Field Profile",
   "description": "Defines a selectively permeable shared field for autonomous agents.",
   "type": "object",
@@ -26,7 +26,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "0.4.0"
+      "const": "0.5.0"
     },
     "record_type": {
       "const": "shared-field-profile"
