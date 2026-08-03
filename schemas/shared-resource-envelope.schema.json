@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:kazene:agentic-shared-field-protocol:shared-resource-envelope:0.4.0",
+  "$id": "urn:kazene:agentic-shared-field-protocol:shared-resource-envelope:0.5.0",
   "title": "Shared Resource Envelope",
   "description": "Carries a proposed resource and its provenance, content reference, and rights metadata to a shared-field boundary.",
   "type": "object",
@@ -23,7 +23,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "0.4.0"
+      "const": "0.5.0"
     },
     "record_type": {
       "const": "shared-resource-envelope"
@@ -239,4 +239,3 @@
     }
   }
 }
-
