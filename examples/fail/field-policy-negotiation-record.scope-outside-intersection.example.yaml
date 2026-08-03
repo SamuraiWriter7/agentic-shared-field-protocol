@@ -1,0 +1,38 @@
+schema_version: 0.5.0
+record_type: field-policy-negotiation-record
+negotiation_id: policy-negotiation:wind.scope-outside-intersection.001
+federation_id: federation:wind.metabolic-network.v1
+source_admission_id: federation-admission:wind.shared-reasoning.v1
+target_admission_id: federation-admission:wind.shared-safety.v1
+source_field_id: field:wind.shared-reasoning.v1
+target_field_id: field:wind.shared-safety.v1
+requested_resource_domain: reasoning
+requested_scopes:
+- read
+- derive
+- redistribute
+- commercialize
+policy_inputs:
+  source_policy_ref: policy:wind-field-governance.v1
+  target_policy_ref: policy:wind-safety-field-governance.v1
+  federation_policy_ref: policy:wind-federation-governance.v1
+resolved_terms:
+  accepted_classifications:
+  - provisional
+  - recoverable
+  max_lease_seconds: 1200
+  retention_seconds: 604800
+  audit_required: true
+  derivative_trace_required: true
+  royalty_settlement_required: true
+  revocation_propagation_required: true
+  target_reassessment_required: true
+  royalty_policy_ref: policy:wind-federated-royalty.v1
+unresolved_conflicts: []
+decision: agreed
+policy_digest:
+  algorithm: sha256
+  value: dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+negotiated_at: '2026-08-02T09:00:00+09:00'
+expires_at: '2026-09-02T09:00:00+09:00'
+issued_by: org:wind-council
