@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kazene:agentic-shared-field-protocol:cross-field-circulation-receipt:0.5.0",
+  "title": "Cross Field Circulation Receipt",
+  "description": "Closes a cross-field resource transfer through the target field contribution boundary.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_type",
+    "cross_field_receipt_id",
+    "federation_id",
+    "route_authorization_id",
+    "source_field_id",
+    "target_field_id",
+    "source_field_resource_id",
+    "source_envelope_id",
+    "transfer_id",
+    "target_envelope_id",
+    "target_contribution_request_id",
+    "target_contribution_receipt_id",
+    "transferred_resource_domain",
+    "exercised_scopes",
+    "hop_count",
+    "outcome",
+    "lineage",
+    "obligations",
+    "started_at",
+    "completed_at",
+    "status"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.5.0"
+    },
+    "record_type": {
+      "const": "cross-field-circulation-receipt"
+    },
+    "cross_field_receipt_id": {
+      "type": "string",
+      "pattern": "^cross-field-receipt:[a-z0-9](?:[a-z0-9._-]{1,160}[a-z0-9])?$"
+    },
+    "federation_id": {
+      "type": "string",
+      "pattern": "^federation:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "route_authorization_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200
+    },
+    "source_field_id": {
+      "type": "string",
+      "pattern": "^field:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "target_field_id": {
+      "type": "string",
+      "pattern": "^field:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "source_field_resource_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200
+    },
+    "source_envelope_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200
+    },
+    "transfer_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200
+    },
+    "target_envelope_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200
+    },
+    "target_contribution_request_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200
+    },
+    "target_contribution_receipt_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200
+    },
+    "transferred_resource_domain": {
+      "type": "string",
+      "enum": [
+        "knowledge",
+        "memory",
+        "reasoning",
+        "compute",
+        "value"
+      ]
+    },
+    "exercised_scopes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "read",
+          "derive",
+          "execute",
+          "redistribute",
+          "commercialize"
+        ]
+      }
+    },
+    "hop_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "admitted",
+        "quarantined",
+        "rejected",
+        "pending-human-review"
+      ]
+    },
+    "lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin_trace_id",
+        "derivative_trace_id",
+        "previous_cross_field_receipt_ids"
+      ],
+      "properties": {
+        "origin_trace_id": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200
+        },
+        "derivative_trace_id": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200
+        },
+        "previous_cross_field_receipt_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 200
+          }
+        }
+      }
+    },
+    "obligations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "royalty_settlement_required",
+        "revocation_propagation_required",
+        "target_reassessment_completed"
+      ],
+      "properties": {
+        "royalty_settlement_required": {
+          "type": "boolean"
+        },
+        "revocation_propagation_required": {
+          "type": "boolean"
+        },
+        "target_reassessment_completed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "blocked",
+        "pending"
+      ]
+    }
+  }
+}
