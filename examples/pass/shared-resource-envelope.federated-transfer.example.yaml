@@ -1,0 +1,36 @@
+schema_version: 0.5.0
+record_type: shared-resource-envelope
+envelope_id: envelope:wind.federated-safety-pattern.001
+field_id: field:wind.shared-safety.v1
+contributor_binding_id: binding:wind.federation-bridge.v1
+resource_id: resource:federated-safety-pattern.001
+resource_domain: reasoning
+resource_kind: reasoning-artifact
+proposed_classification: recoverable
+origin:
+  origin_id: origin:federated-safety-pattern.001
+  origin_trace_id: trace:federated-reasoning-transfer.001
+  produced_by: agent:federation-bridge.v1
+  produced_at: '2026-08-02T10:00:30+09:00'
+  derivative_of:
+  - field-resource:wind.federation-source-pattern.001
+  - route-authorization:wind.reasoning-to-safety.001
+content:
+  mode: reference
+  media_type: application/yaml
+  content_ref: urn:resource-store:federated-safety-pattern.001
+  digest:
+    algorithm: sha256
+    value: eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+  size_bytes: 6144
+  encoding: utf-8
+rights:
+  permitted_scopes:
+  - read
+  - derive
+  - redistribute
+  revocable: true
+  royalty_policy_ref: policy:wind-federated-royalty.v1
+created_at: '2026-08-02T10:01:00+09:00'
+expires_at: '2026-09-02T10:01:00+09:00'
+lifecycle_status: proposed
