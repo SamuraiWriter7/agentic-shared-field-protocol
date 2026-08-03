@@ -1,0 +1,31 @@
+schema_version: 0.5.0
+record_type: cross-field-circulation-receipt
+cross_field_receipt_id: cross-field-receipt:wind.reasoning-to-safety.001
+federation_id: federation:wind.metabolic-network.v1
+route_authorization_id: route-authorization:wind.reasoning-to-safety.001
+source_field_id: field:wind.shared-reasoning.v1
+target_field_id: field:wind.shared-safety.v1
+source_field_resource_id: field-resource:wind.federation-source-pattern.001
+source_envelope_id: envelope:wind.federation-source-pattern.001
+transfer_id: transfer:wind.reasoning-to-safety.001
+target_envelope_id: envelope:wind.federated-safety-pattern.001
+target_contribution_request_id: contribution-request:wind.federated-safety-pattern.001
+target_contribution_receipt_id: contribution-receipt:wind.federated-safety-pattern.001
+transferred_resource_domain: reasoning
+exercised_scopes:
+- read
+- derive
+- redistribute
+hop_count: 1
+outcome: admitted
+lineage:
+  origin_trace_id: trace:federation-source-pattern.001
+  derivative_trace_id: trace:federated-reasoning-transfer.001
+  previous_cross_field_receipt_ids: []
+obligations:
+  royalty_settlement_required: true
+  revocation_propagation_required: true
+  target_reassessment_completed: true
+started_at: '2026-08-02T10:00:00+09:00'
+completed_at: '2026-08-02T10:05:00+09:00'
+status: completed
