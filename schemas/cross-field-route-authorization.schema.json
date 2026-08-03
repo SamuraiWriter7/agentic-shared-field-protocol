@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kazene:agentic-shared-field-protocol:cross-field-route-authorization:0.5.0",
+  "title": "Cross Field Route Authorization",
+  "description": "Authorizes a bounded route between two admitted shared fields.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_type",
+    "route_authorization_id",
+    "federation_id",
+    "negotiation_id",
+    "source_admission_id",
+    "target_admission_id",
+    "source_field_id",
+    "target_field_id",
+    "permitted_resource_domain",
+    "permitted_scopes",
+    "max_hops",
+    "max_lease_seconds",
+    "conditions",
+    "authorized_by",
+    "authorized_at",
+    "valid_until",
+    "status"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.5.0"
+    },
+    "record_type": {
+      "const": "cross-field-route-authorization"
+    },
+    "route_authorization_id": {
+      "type": "string",
+      "pattern": "^route-authorization:[a-z0-9](?:[a-z0-9._-]{1,160}[a-z0-9])?$"
+    },
+    "federation_id": {
+      "type": "string",
+      "pattern": "^federation:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "negotiation_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200
+    },
+    "source_admission_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200
+    },
+    "target_admission_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200
+    },
+    "source_field_id": {
+      "type": "string",
+      "pattern": "^field:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "target_field_id": {
+      "type": "string",
+      "pattern": "^field:[a-z0-9](?:[a-z0-9._-]{1,126}[a-z0-9])?$"
+    },
+    "permitted_resource_domain": {
+      "type": "string",
+      "enum": [
+        "knowledge",
+        "memory",
+        "reasoning",
+        "compute",
+        "value"
+      ]
+    },
+    "permitted_scopes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "read",
+          "derive",
+          "execute",
+          "redistribute",
+          "commercialize"
+        ]
+      }
+    },
+    "max_hops": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 16
+    },
+    "max_lease_seconds": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "conditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_reassessment_required",
+        "audit_required",
+        "royalty_settlement_required",
+        "revocation_propagation_required",
+        "known_derivative_coverage_required"
+      ],
+      "properties": {
+        "target_reassessment_required": {
+          "type": "boolean"
+        },
+        "audit_required": {
+          "type": "boolean"
+        },
+        "royalty_settlement_required": {
+          "type": "boolean"
+        },
+        "revocation_propagation_required": {
+          "type": "boolean"
+        },
+        "known_derivative_coverage_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "authorized_by": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200
+    },
+    "authorized_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "valid_until": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "revoked",
+        "expired"
+      ]
+    }
+  }
+}
