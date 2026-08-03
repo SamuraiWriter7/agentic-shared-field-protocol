@@ -16,7 +16,7 @@ record_type: field-circulation-receipt
 return_records: []
 reuse_authorization_id: reuse-authz:wind.reasoning-residue.001
 reuse_request_id: reuse-request:wind.reasoning-residue.001
-schema_version: 0.4.0
+schema_version: 0.5.0
 usage:
   actual_scopes:
   - read
