@@ -1,0 +1,24 @@
+schema_version: 0.5.0
+record_type: federation-circulation-health-report
+health_report_id: federation-health:wind.2026-08-02t11.001
+federation_id: federation:wind.metabolic-network.v1
+window_start: '2026-08-02T09:00:00+09:00'
+window_end: '2026-08-02T11:00:00+09:00'
+metrics:
+  cross_field_attempts: 1
+  completed_routes: 1
+  failed_routes: 0
+  quarantined_transfers: 0
+  royalty_required_transfers: 1
+  settled_transfers: 1
+  revocations_issued: 0
+  max_observed_revocation_lag_seconds: 0
+derived_rates:
+  failed_route_rate: 0.0
+  quarantine_rate: 0.0
+  settlement_completion_rate: 1.0
+threshold_breaches: []
+status: healthy
+recommended_actions: []
+generated_by: agent:federation-health-auditor.v1
+generated_at: '2026-08-02T11:01:00+09:00'
