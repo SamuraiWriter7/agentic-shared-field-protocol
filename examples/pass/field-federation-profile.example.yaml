@@ -1,0 +1,60 @@
+schema_version: 0.5.0
+record_type: field-federation-profile
+federation_id: federation:wind.metabolic-network.v1
+name: Wind Metabolic Field Federation
+description: A federation that routes traceable resources between independently governed
+  shared fields without erasing local policy.
+governance:
+  governance_mode: council
+  policy_ref: policy:wind-federation-governance.v1
+  steward_ids:
+  - human:shidenkai-alpha
+  - org:wind-council
+  quorum: 2
+admission_policy:
+  compatibility_profile_refs:
+  - profile:civilization-os-interoperability.v1
+  approval_mode: quorum
+  minimum_trust_level: medium
+  active_field_required: true
+  immune_continuity_required: true
+routing_policy:
+  allowed_resource_domains:
+  - knowledge
+  - memory
+  - reasoning
+  - value
+  allowed_scopes:
+  - read
+  - derive
+  - redistribute
+  max_hops: 4
+  cross_field_lease_required: true
+  revocation_propagation_required: true
+  target_reassessment_required: true
+negotiation_policy:
+  required_dimensions:
+  - rights
+  - retention
+  - audit
+  - immunity
+  - royalty
+  - revocation
+  conflict_resolution: stricter-wins
+  policy_hash_algorithm: sha256
+settlement_policy:
+  unit: microunit
+  source_field_min_share: 0.2
+  target_field_min_share: 0.1
+  common_pool_share: 0.05
+  rounding_mode: nearest
+  settlement_required: true
+health_policy:
+  max_quarantine_rate: 0.2
+  max_failed_route_rate: 0.1
+  min_settlement_completion_rate: 0.95
+  max_revocation_lag_seconds: 300
+  report_interval_seconds: 3600
+status: active
+created_at: '2026-08-02T08:20:00+09:00'
+updated_at: '2026-08-02T08:20:00+09:00'
