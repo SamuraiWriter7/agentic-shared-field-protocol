@@ -1,0 +1,39 @@
+schema_version: 0.5.0
+record_type: field-federation-admission-record
+admission_id: federation-admission:wind.shared-reasoning.v1
+federation_id: federation:wind.metabolic-network.v1
+field_id: field:wind.shared-reasoning.v1
+applicant_steward_id: human:shidenkai-alpha
+requested_resource_domains: &id001
+- reasoning
+- value
+requested_scopes:
+- read
+- derive
+- redistribute
+compatibility_checks:
+  schema_compatibility: pass
+  trace_continuity: pass
+  authorization_continuity: pass
+  immune_continuity: pass
+  royalty_compatibility: pass
+approvals:
+- approver_id: human:shidenkai-alpha
+  decision: approve
+  decided_at: '2026-08-02T08:31:00+09:00'
+- approver_id: org:wind-council
+  decision: approve
+  decided_at: '2026-08-02T08:32:00+09:00'
+decision: admitted
+granted_resource_domains: *id001
+granted_scopes:
+- read
+- derive
+- redistribute
+trust_level: high
+valid_from: '2026-08-02T08:35:00+09:00'
+valid_until: '2027-08-02T08:35:00+09:00'
+issued_by: org:wind-council
+issued_at: '2026-08-02T08:33:00+09:00'
+reason: Field passed federation compatibility and continuity checks.
+lifecycle_status: active
