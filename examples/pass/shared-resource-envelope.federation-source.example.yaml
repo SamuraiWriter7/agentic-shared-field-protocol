@@ -1,0 +1,35 @@
+schema_version: 0.5.0
+record_type: shared-resource-envelope
+envelope_id: envelope:wind.federation-source-pattern.001
+field_id: field:wind.shared-reasoning.v1
+contributor_binding_id: binding:wind.kidney-filter.v1
+resource_id: resource:federation-source-pattern.001
+resource_domain: reasoning
+resource_kind: reasoning-artifact
+proposed_classification: recoverable
+origin:
+  origin_id: origin:federation-source-pattern.001
+  origin_trace_id: trace:federation-source-pattern.001
+  produced_by: agent:kidney-filter.v1
+  produced_at: '2026-08-02T09:30:00+09:00'
+  derivative_of:
+  - trace:verified-safety-branch.009
+content:
+  mode: reference
+  media_type: application/yaml
+  content_ref: urn:resource-store:federation-source-pattern.001
+  digest:
+    algorithm: sha256
+    value: ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+  size_bytes: 5120
+  encoding: utf-8
+rights:
+  permitted_scopes:
+  - read
+  - derive
+  - redistribute
+  revocable: true
+  royalty_policy_ref: policy:wind-federated-royalty.v1
+created_at: '2026-08-02T09:31:00+09:00'
+expires_at: '2026-09-02T09:31:00+09:00'
+lifecycle_status: proposed
